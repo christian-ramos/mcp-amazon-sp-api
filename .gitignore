@@ -1,0 +1,7 @@
+.env
+.env.test
+.venv/
+__pycache__/
+*.egg-info/
+dist/
+.claude/

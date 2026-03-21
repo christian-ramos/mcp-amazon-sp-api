@@ -6,10 +6,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
-import base64
-
 from mcp.server.fastmcp import FastMCP
-import mcp.types as mcp_types
 
 from .config import load_config
 from .sp_client import AmazonClient
@@ -23,7 +20,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-TOOLS_PAGE_SIZE = 20
+
 mcp = FastMCP("amazon-sp-api")
 
 
@@ -1705,31 +1702,7 @@ def get_order_metrics(days_back: int = 30, granularity: str = "Day", marketplace
 # Entry point
 # ---------------------------------------------------------------------------
 
-def _install_paginated_tools_list():
-    """Reemplaza el handler de ListToolsRequest con uno que pagina."""
-
-    async def paginated_handler(req: mcp_types.ListToolsRequest):
-        infos = mcp._tool_manager.list_tools()
-        all_tools = [
-            mcp_types.Tool(
-                name=i.name, title=i.title, description=i.description,
-                inputSchema=i.parameters, outputSchema=i.output_schema,
-                annotations=i.annotations,
-            )
-            for i in infos
-        ]
-        cursor = req.params.cursor if req.params and req.params.cursor else None
-        start = int(base64.b64decode(cursor).decode()) if cursor else 0
-        end = start + TOOLS_PAGE_SIZE
-        page = all_tools[start:end]
-        next_cursor = base64.b64encode(str(end).encode()).decode() if end < len(all_tools) else None
-        return mcp_types.ServerResult(mcp_types.ListToolsResult(tools=page, nextCursor=next_cursor))
-
-    mcp._mcp_server.request_handlers[mcp_types.ListToolsRequest] = paginated_handler
-
-
 def main():
-    _install_paginated_tools_list()
     mcp.run()
 
 

@@ -13,6 +13,7 @@ import mcp.types as mcp_types
 
 from .config import load_config
 from .sp_client import AmazonClient
+from .tool_docs import TOOL_DOCS
 
 # Logging a stderr (NUNCA stdout — corrompe el protocolo MCP stdio)
 logging.basicConfig(
@@ -24,6 +25,24 @@ logger = logging.getLogger(__name__)
 
 TOOLS_PAGE_SIZE = 20
 mcp = FastMCP("amazon-sp-api")
+
+
+@mcp.resource("tool-docs://all")
+def get_all_tool_docs() -> str:
+    """Documentación detallada de todas las tools disponibles."""
+    lines = []
+    for name, doc in TOOL_DOCS.items():
+        lines.append(f"## {name}\n{doc}\n")
+    return "\n".join(lines)
+
+
+@mcp.resource("tool-docs://{tool_name}")
+def get_tool_doc(tool_name: str) -> str:
+    """Documentación detallada de una tool específica."""
+    doc = TOOL_DOCS.get(tool_name)
+    if doc:
+        return f"## {tool_name}\n{doc}"
+    return f"Tool '{tool_name}' no encontrada. Tools disponibles: {', '.join(TOOL_DOCS.keys())}"
 
 
 def _json(obj: object) -> str:

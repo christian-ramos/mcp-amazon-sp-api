@@ -1,6 +1,6 @@
 """Tests de tools MCP: Invoices."""
 
-from mcp_amazon_sp_api.server import get_invoices, download_invoice
+from mcp_amazon_sp_api.tools.invoices import download_invoice, get_invoices
 from .conftest import parse
 
 

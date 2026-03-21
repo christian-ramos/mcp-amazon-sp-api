@@ -1,5 +1,7 @@
 """Tests unitarios para config.py."""
 
+from unittest.mock import patch
+
 import pytest
 
 from mcp_amazon_sp_api.config import MARKETPLACE_ID_ES, SpApiConfig, load_config
@@ -28,25 +30,28 @@ class TestLoadConfig:
         assert config.lwa_client_secret == "fake_secret"
         assert config.marketplace == "ES"
 
-    def test_fails_when_all_missing(self, monkeypatch):
+    @patch("mcp_amazon_sp_api.config._read_keychain", return_value=None)
+    def test_fails_when_all_missing(self, _mock_kc, monkeypatch):
         monkeypatch.delenv("SP_API_REFRESH_TOKEN", raising=False)
         monkeypatch.delenv("LWA_APP_ID", raising=False)
         monkeypatch.delenv("LWA_CLIENT_SECRET", raising=False)
-        with pytest.raises(EnvironmentError, match="Faltan variables de entorno"):
+        with pytest.raises(EnvironmentError, match="Faltan credenciales"):
             load_config(env_file=None)
 
-    def test_fails_when_one_missing(self, monkeypatch):
+    @patch("mcp_amazon_sp_api.config._read_keychain", return_value=None)
+    def test_fails_when_one_missing(self, _mock_kc, monkeypatch):
         monkeypatch.setenv("SP_API_REFRESH_TOKEN", "tok")
         monkeypatch.setenv("LWA_APP_ID", "app")
         monkeypatch.delenv("LWA_CLIENT_SECRET", raising=False)
         with pytest.raises(EnvironmentError, match="LWA_CLIENT_SECRET"):
             load_config(env_file=None)
 
-    def test_error_message_mentions_env_example(self, monkeypatch):
+    @patch("mcp_amazon_sp_api.config._read_keychain", return_value=None)
+    def test_error_message_mentions_env_example(self, _mock_kc, monkeypatch):
         monkeypatch.delenv("SP_API_REFRESH_TOKEN", raising=False)
         monkeypatch.delenv("LWA_APP_ID", raising=False)
         monkeypatch.delenv("LWA_CLIENT_SECRET", raising=False)
-        with pytest.raises(EnvironmentError, match=r"\.env\.example"):
+        with pytest.raises(EnvironmentError, match="Keychain"):
             load_config(env_file=None)
 
 

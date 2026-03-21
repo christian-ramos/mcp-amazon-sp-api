@@ -1,9 +1,6 @@
 """Tests de tools MCP: FBA e Inventario."""
 
-from mcp_amazon_sp_api.server import (
-    get_fba_inventory, get_fba_returns,
-    get_fba_fees_report, get_restock_suggestions,
-)
+from mcp_amazon_sp_api.tools.fba_inventory import get_fba_fees_report, get_fba_inventory, get_fba_returns, get_restock_suggestions
 from .conftest import parse
 
 

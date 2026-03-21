@@ -1,9 +1,6 @@
 """Tests de tools MCP: Brand Analytics."""
 
-from mcp_amazon_sp_api.server import (
-    get_search_terms, get_search_performance, get_market_basket,
-    get_repeat_purchases,
-)
+from mcp_amazon_sp_api.tools.brand_analytics import get_market_basket, get_repeat_purchases, get_search_performance, get_search_terms
 from .conftest import parse
 
 

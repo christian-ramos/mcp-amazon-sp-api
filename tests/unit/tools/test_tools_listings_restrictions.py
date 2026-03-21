@@ -1,6 +1,6 @@
 """Tests de tools MCP: Listings Restrictions."""
 
-from mcp_amazon_sp_api.server import check_listing_restrictions, check_expansion_eligibility
+from mcp_amazon_sp_api.tools.listings_restrictions import check_expansion_eligibility, check_listing_restrictions
 from .conftest import parse
 
 

@@ -1,6 +1,7 @@
 """Tests de tools MCP: catalog (list_products, get_product_details, get_sales_rankings)."""
 
-from mcp_amazon_sp_api.server import list_products, get_product_details, get_sales_rankings
+from mcp_amazon_sp_api.tools.analysis import get_sales_rankings
+from mcp_amazon_sp_api.tools.catalog_orders import get_product_details, list_products
 from .conftest import parse
 
 

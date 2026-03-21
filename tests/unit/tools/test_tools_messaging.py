@@ -1,6 +1,6 @@
 """Tests de tools MCP: Messaging."""
 
-from mcp_amazon_sp_api.server import get_messaging_options, send_buyer_message
+from mcp_amazon_sp_api.tools.messaging import get_messaging_options, send_buyer_message
 from .conftest import parse
 
 

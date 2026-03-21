@@ -1,6 +1,6 @@
 """Tests de tools MCP: fees (estimate_fees)."""
 
-from mcp_amazon_sp_api.server import estimate_fees
+from mcp_amazon_sp_api.tools.analysis import estimate_fees
 from .conftest import parse
 
 

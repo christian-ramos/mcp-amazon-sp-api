@@ -1,6 +1,6 @@
 """Tests de tools MCP: A+ Content."""
 
-from mcp_amazon_sp_api.server import list_aplus_content, get_aplus_content, get_aplus_asin_relations
+from mcp_amazon_sp_api.tools.aplus_content import get_aplus_asin_relations, get_aplus_content, list_aplus_content
 from .conftest import parse
 
 

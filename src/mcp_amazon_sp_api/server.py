@@ -73,7 +73,7 @@ def _get_client(marketplace: str = "") -> AmazonClient:
 
 @mcp.tool()
 def list_products(keywords: str = "", marketplace: str = "") -> str:
-    """Buscar productos en el catálogo de Amazon por keywords. Devuelve ASIN, título, marca."""
+    """Buscar productos en el catálogo de Amazon por keywords."""
     try:
         client = _get_client(marketplace)
         if keywords:
@@ -98,7 +98,7 @@ def list_products(keywords: str = "", marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_product_details(asin: str, marketplace: str = "") -> str:
-    """Detalle completo de un producto: título, marca, imágenes, rankings de ventas."""
+    """Detalle de un producto: título, marca, imágenes, rankings."""
     try:
         client = _get_client(marketplace)
         item = client.get_catalog_item(asin)
@@ -138,7 +138,7 @@ def get_product_details(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_orders(days_back: int = 7, status: str = "", marketplace: str = "") -> str:
-    """Obtener pedidos recientes. Solo usa CreatedAfter (no CreatedBefore) para evitar errores de timestamp."""
+    """Pedidos recientes por fecha y estado."""
     try:
         client = _get_client(marketplace)
         created_after = _iso_days_ago(days_back)
@@ -165,7 +165,7 @@ def get_orders(days_back: int = 7, status: str = "", marketplace: str = "") -> s
 
 @mcp.tool()
 def get_order_items(order_id: str, marketplace: str = "") -> str:
-    """Obtener los items/productos de un pedido específico. Devuelve SKU, ASIN, título, precio, cantidad."""
+    """Items de un pedido: SKU, ASIN, precio, cantidad."""
     try:
         client = _get_client(marketplace)
         items = client.get_order_items(order_id)
@@ -188,7 +188,7 @@ def get_order_items(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_sales_summary(days_back: int = 30, marketplace: str = "") -> str:
-    """Resumen agregado de ventas: revenue, unidades y top productos por ASIN."""
+    """Resumen de ventas: revenue, unidades, top productos."""
     try:
         client = _get_client(marketplace)
         created_after = _iso_days_ago(days_back)
@@ -260,7 +260,7 @@ def get_sales_summary(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_returns_summary(days_back: int = 30, marketplace: str = "") -> str:
-    """Resumen de devoluciones y reembolsos en un periodo. Pagina automáticamente."""
+    """Resumen de devoluciones y reembolsos."""
     try:
         client = _get_client(marketplace)
         posted_after = _iso_days_ago(days_back)
@@ -305,7 +305,7 @@ def get_returns_summary(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_order_finances(order_id: str, marketplace: str = "") -> str:
-    """Desglose financiero completo de un pedido: ingresos, fees, refunds, neto, margen."""
+    """Desglose financiero de un pedido: fees, neto, margen."""
     try:
         client = _get_client(marketplace)
         events = client.get_financial_events_for_order(order_id)
@@ -372,7 +372,7 @@ def get_order_finances(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def estimate_fees(asin: str, price: float, is_fba: bool = True, marketplace: str = "") -> str:
-    """Estimar fees de Amazon para un producto a un precio dado. Devuelve desglose de fees y margen neto."""
+    """Estimar fees de Amazon para un producto y precio."""
     try:
         client = _get_client(marketplace)
         fees_data = client.get_fees_estimate(asin=asin, price=price, is_fba=is_fba)
@@ -406,7 +406,7 @@ def estimate_fees(asin: str, price: float, is_fba: bool = True, marketplace: str
 
 @mcp.tool()
 def get_profitability_report(days_back: int = 30, max_orders: int = 20, marketplace: str = "") -> str:
-    """Informe de rentabilidad real por SKU: ingresos, fees, devoluciones, margen neto."""
+    """Rentabilidad por SKU: ingresos, fees, margen neto."""
     try:
         client = _get_client(marketplace)
         max_orders = min(max_orders, 50)
@@ -495,7 +495,7 @@ def get_profitability_report(days_back: int = 30, max_orders: int = 20, marketpl
 
 @mcp.tool()
 def get_sales_rankings(asin: str, marketplace: str = "") -> str:
-    """Obtener rankings de ventas (BSR) de un producto por categoría."""
+    """Rankings de ventas (BSR) por categoría."""
     try:
         client = _get_client(marketplace)
         item = client.get_catalog_item(asin)
@@ -532,7 +532,7 @@ def get_sales_rankings(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_listing_content(sku: str, marketplace: str = "") -> str:
-    """Leer el contenido completo de TU listing: título, bullets, descripción, keywords, ofertas e issues."""
+    """Contenido de tu listing: título, bullets, keywords, offers."""
     try:
         client = _get_client(marketplace)
         listing = client.get_listing_item(sku)
@@ -590,7 +590,7 @@ def get_listing_content(sku: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_my_listings(status: str = "", issue_severity: str = "", page_size: int = 10, marketplace: str = "") -> str:
-    """Listar MIS listings (solo productos de mi cuenta). Pagina automáticamente."""
+    """Listar todos tus listings con estado e issues."""
     try:
         client = _get_client(marketplace)
         items = client.search_listings_items(
@@ -621,7 +621,7 @@ def list_my_listings(status: str = "", issue_severity: str = "", page_size: int 
 
 @mcp.tool()
 def get_listing_issues(sku: str, marketplace: str = "") -> str:
-    """Ver issues de calidad de un listing: errores, warnings, atributos afectados."""
+    """Issues de calidad de un listing."""
     try:
         client = _get_client(marketplace)
         listing = client.get_listing_item(sku)
@@ -648,7 +648,7 @@ def get_listing_issues(sku: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_product_type_info(product_type: str = "", keywords: str = "", marketplace: str = "") -> str:
-    """Buscar product types o ver atributos válidos para un tipo de producto."""
+    """Atributos válidos de un product type o buscar tipos."""
     try:
         client = _get_client(marketplace)
         if product_type:
@@ -712,7 +712,7 @@ def update_listing_attribute(
     marketplace: str = "",
     confirm: bool = False,
 ) -> str:
-    """Actualizar un atributo de un listing (título, bullets, descripción, keywords)."""
+    """Actualizar un atributo de un listing. Requiere confirm=True."""
     try:
         config = load_config()
         if marketplace:
@@ -774,7 +774,7 @@ def update_listing_attribute(
 
 @mcp.tool()
 def update_listing_batch(sku: str, product_type: str, updates: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Actualizar múltiples atributos de un listing de una vez."""
+    """Actualizar múltiples atributos de un listing. Requiere confirm=True."""
     try:
         attrs = json.loads(updates)
         config = load_config()
@@ -841,7 +841,7 @@ def update_listing_batch(sku: str, product_type: str, updates: str, marketplace:
 
 @mcp.tool()
 def request_report(report_type: str, days_back: int = 30, marketplace: str = "") -> str:
-    """Solicitar la generación de un informe de Amazon. Proceso asíncrono: devuelve reportId."""
+    """Solicitar generación de un informe de Amazon (asíncrono)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -862,7 +862,7 @@ def request_report(report_type: str, days_back: int = 30, marketplace: str = "")
 
 @mcp.tool()
 def check_report(report_id: str, marketplace: str = "") -> str:
-    """Consultar el estado de un informe solicitado (IN_QUEUE, IN_PROGRESS, DONE, FATAL)."""
+    """Estado de un informe: IN_QUEUE, IN_PROGRESS, DONE, FATAL."""
     try:
         client = _get_client(marketplace)
         status = client.get_report_status(report_id)
@@ -880,7 +880,7 @@ def check_report(report_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def download_report(report_id: str, marketplace: str = "") -> str:
-    """Descargar el contenido de un informe completado. Primero verifica que esté en DONE."""
+    """Descargar contenido de un informe completado."""
     try:
         client = _get_client(marketplace)
         status = client.get_report_status(report_id)
@@ -906,7 +906,7 @@ def download_report(report_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_search_terms(days_back: int = 30, marketplace: str = "") -> str:
-    """Top keywords de búsqueda con click share y conversion share (Brand Analytics)."""
+    """Top keywords con click/conversion share (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -924,7 +924,7 @@ def get_search_terms(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_search_performance(asins: str, marketplace: str = "") -> str:
-    """Rendimiento de tus ASINs en búsquedas: impresiones, clics, carrito, compras (Brand Analytics)."""
+    """Rendimiento de tus ASINs en búsquedas (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()]
@@ -940,7 +940,7 @@ def get_search_performance(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_market_basket(days_back: int = 30, marketplace: str = "") -> str:
-    """Productos que los clientes compran junto con los tuyos — análisis cross-sell (Brand Analytics)."""
+    """Productos comprados junto con los tuyos (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -958,7 +958,7 @@ def get_market_basket(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_repeat_purchases(days_back: int = 30, marketplace: str = "") -> str:
-    """Tasa de recompra por ASIN — fidelización de clientes (Brand Analytics)."""
+    """Tasa de recompra por ASIN (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -985,7 +985,7 @@ def get_repeat_purchases(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_inventory(marketplace: str = "") -> str:
-    """Stock en FBA por SKU (vía report asíncrono, tarda 1-5 min)."""
+    """Stock FBA por SKU vía report asíncrono."""
     try:
         client = _get_client(marketplace)
         data = client.get_fba_inventory_report()
@@ -1004,7 +1004,7 @@ def get_fba_inventory(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_returns(days_back: int = 30, marketplace: str = "") -> str:
-    """Devoluciones FBA con motivo detallado (DEFECTIVE, CUSTOMER_RETURN, etc.) vía report asíncrono."""
+    """Devoluciones FBA con motivo detallado vía report."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1022,7 +1022,7 @@ def get_fba_returns(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_fees_report(marketplace: str = "") -> str:
-    """Tarifas de almacenamiento FBA: actuales y de largo plazo (2 reports asíncronos, 2-10 min)."""
+    """Tarifas de almacenamiento FBA actuales y largo plazo."""
     try:
         client = _get_client(marketplace)
         storage = client.get_fba_storage_fees()
@@ -1044,7 +1044,7 @@ def get_fba_fees_report(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_restock_suggestions(marketplace: str = "") -> str:
-    """Recomendaciones de restock: qué SKUs reabastecer y cuántas unidades enviar (report asíncrono, 1-5 min)."""
+    """Recomendaciones de restock: qué y cuánto reabastecer."""
     try:
         client = _get_client(marketplace)
         data = client.get_restock_recommendations()
@@ -1064,7 +1064,7 @@ def get_restock_suggestions(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_sales_and_traffic(days_back: int = 30, marketplace: str = "") -> str:
-    """Métricas de rendimiento por ASIN: sesiones, page views, conversión, Buy Box %. Report asíncrono."""
+    """Sesiones, conversión, Buy Box % por ASIN vía report."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1087,7 +1087,7 @@ def get_sales_and_traffic(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_inventory(sku: str = "", marketplace: str = "") -> str:
-    """Stock actual en FBA en tiempo real: disponible, inbound, reserved. Pagina automáticamente."""
+    """Stock FBA en tiempo real por SKU."""
     try:
         client = _get_client(marketplace)
         skus = [s.strip() for s in sku.split(",") if s.strip()] if sku else None
@@ -1108,7 +1108,7 @@ def get_inventory(sku: str = "", marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_competitive_pricing(asins: str, marketplace: str = "") -> str:
-    """Precios competitivos, Buy Box y rankings de ventas por ASIN. Máximo 20 ASINs por llamada."""
+    """Precios competitivos, Buy Box y rankings por ASIN."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()][:20]
@@ -1148,7 +1148,7 @@ def get_competitive_pricing(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_competitor_offers(asin: str, marketplace: str = "") -> str:
-    """Ver TODAS las ofertas de vendedores para un ASIN: precio, condición, FBA/FBM, quién tiene Buy Box."""
+    """Ofertas de todos los vendedores para un ASIN."""
     try:
         client = _get_client(marketplace)
         data = client.get_item_offers(asin)
@@ -1188,7 +1188,7 @@ def get_competitor_offers(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_aplus_content(marketplace: str = "") -> str:
-    """Listar todos los documentos A+ Content de tu cuenta. Pagina automáticamente."""
+    """Listar documentos A+ Content de tu cuenta."""
     try:
         client = _get_client(marketplace)
         docs = client.search_content_documents()
@@ -1213,7 +1213,7 @@ def list_aplus_content(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_aplus_content(content_key: str, marketplace: str = "") -> str:
-    """Leer el detalle de un documento A+ Content: módulos, textos, imágenes."""
+    """Detalle de un documento A+ Content."""
     try:
         client = _get_client(marketplace)
         doc = client.get_content_document(content_key)
@@ -1225,7 +1225,7 @@ def get_aplus_content(content_key: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_aplus_asin_relations(content_key: str, marketplace: str = "") -> str:
-    """Ver qué ASINs usan un documento A+ Content específico."""
+    """ASINs asociados a un documento A+ Content."""
     try:
         client = _get_client(marketplace)
         asins = client.get_content_asin_relations(content_key)
@@ -1246,7 +1246,7 @@ def get_aplus_asin_relations(content_key: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_cross_marketplace_prices(sku: str, marketplaces: str = "") -> str:
-    """Ver el precio de un SKU en todos los marketplaces europeos."""
+    """Ver precio de un SKU en todos los marketplaces EU."""
     try:
         client = _get_client()
         mp_list = [m.strip() for m in marketplaces.split(",") if m.strip()] if marketplaces else None
@@ -1262,7 +1262,7 @@ def get_cross_marketplace_prices(sku: str, marketplaces: str = "") -> str:
 
 @mcp.tool()
 def update_marketplace_price(sku: str, product_type: str, price: float, marketplace: str, confirm: bool = False) -> str:
-    """Cambiar el precio de un SKU en un marketplace específico."""
+    """Cambiar precio en un marketplace. Requiere confirm=True."""
     try:
         if not confirm:
             from .clients.pricing_cross import EU_MARKETPLACES
@@ -1305,7 +1305,7 @@ def sync_marketplace_prices(
     marketplace: str = "",
     confirm: bool = False,
 ) -> str:
-    """Sincronizar precio a múltiples marketplaces (estilo BIL)."""
+    """Sincronizar precios a varios marketplaces. Requiere confirm=True."""
     try:
         target_list = [t.strip() for t in targets.split(",") if t.strip()]
         adjusted = round(base_price * (1 + adjustment_pct / 100), 2)
@@ -1348,7 +1348,7 @@ def sync_marketplace_prices(
 
 @mcp.tool()
 def analyze_competitor_prices(keywords: str, max_results: int = 10, marketplace: str = "") -> str:
-    """Buscar productos similares de la competencia y comparar precios, rankings y fulfillment."""
+    """Buscar competidores y comparar precios y rankings."""
     try:
         client = _get_client(marketplace)
         results = client.analyze_competitor_prices(keywords, max_results)
@@ -1364,7 +1364,7 @@ def analyze_competitor_prices(keywords: str, max_results: int = 10, marketplace:
 
 @mcp.tool()
 def compare_with_competitors(my_asin: str, keywords: str, max_results: int = 10, marketplace: str = "") -> str:
-    """Comparar tu producto con competidores similares: precio, ranking, número de ofertas."""
+    """Comparar tu producto vs competidores similares."""
     try:
         client = _get_client(marketplace)
         result = client.compare_with_competitors(my_asin, keywords, max_results)
@@ -1381,7 +1381,7 @@ def compare_with_competitors(my_asin: str, keywords: str, max_results: int = 10,
 
 @mcp.tool()
 def check_listing_restrictions(asin: str, condition: str = "", marketplace: str = "") -> str:
-    """Ver si puedes vender un ASIN en tu marketplace actual."""
+    """Ver restricciones para vender un ASIN."""
     try:
         client = _get_client(marketplace)
         restrictions = client.get_listings_restrictions(
@@ -1399,7 +1399,7 @@ def check_listing_restrictions(asin: str, condition: str = "", marketplace: str 
 
 @mcp.tool()
 def check_expansion_eligibility(asin: str, marketplaces: str) -> str:
-    """Verificar si puedes vender un ASIN en otros marketplaces europeos."""
+    """Elegibilidad para vender en otros marketplaces EU."""
     try:
         client = _get_client()
         targets = [m.strip() for m in marketplaces.split(",") if m.strip()]
@@ -1424,7 +1424,7 @@ def check_expansion_eligibility(asin: str, marketplaces: str) -> str:
 
 @mcp.tool()
 def bulk_update_prices(updates: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Actualizar precios de múltiples SKUs de una vez mediante feed asíncrono."""
+    """Actualizar precios en bulk vía feed. Requiere confirm=True."""
     try:
         data = json.loads(updates)
         mp = marketplace.upper() or load_config().marketplace
@@ -1455,7 +1455,7 @@ def bulk_update_prices(updates: str, marketplace: str = "", confirm: bool = Fals
 
 @mcp.tool()
 def check_feed(feed_id: str, marketplace: str = "") -> str:
-    """Consultar el estado y resultado de un feed (actualización masiva). Si DONE, descarga el resultado."""
+    """Estado y resultado de un feed de actualización masiva."""
     try:
         client = _get_client(marketplace)
         status = client.get_feed_status(feed_id)
@@ -1484,7 +1484,7 @@ def check_feed(feed_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_fba_shipments(status: str = "", shipment_ids: str = "", marketplace: str = "") -> str:
-    """Ver envíos a FBA y su estado. Pagina automáticamente."""
+    """Envíos a FBA y su estado."""
     try:
         client = _get_client(marketplace)
         ids = [s.strip() for s in shipment_ids.split(",") if s.strip()] if shipment_ids else None
@@ -1512,7 +1512,7 @@ def list_fba_shipments(status: str = "", shipment_ids: str = "", marketplace: st
 
 @mcp.tool()
 def get_fba_shipment_items(shipment_id: str, marketplace: str = "") -> str:
-    """Detalle de items en un envío a FBA: SKU, cantidad enviada vs recibida. Pagina automáticamente."""
+    """Items de un envío a FBA: enviado vs recibido."""
     try:
         client = _get_client(marketplace)
         items = client.get_shipment_items(shipment_id)
@@ -1537,7 +1537,7 @@ def get_fba_shipment_items(shipment_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_inbound_guidance(asins: str, marketplace: str = "") -> str:
-    """Guía de envío a FBA por ASIN: elegibilidad FBA, preparación requerida."""
+    """Guía de envío a FBA: elegibilidad y prep requerido."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()]
@@ -1558,7 +1558,7 @@ def get_inbound_guidance(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_messaging_options(order_id: str, marketplace: str = "") -> str:
-    """Ver qué tipos de mensaje puedes enviar al comprador de un pedido."""
+    """Tipos de mensaje disponibles para un pedido."""
     try:
         client = _get_client(marketplace)
         actions = client.get_messaging_actions(order_id)
@@ -1573,7 +1573,7 @@ def get_messaging_options(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def send_buyer_message(order_id: str, message_type: str, body: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Enviar mensaje al comprador de un pedido."""
+    """Enviar mensaje al comprador. Requiere confirm=True."""
     try:
         body_data = json.loads(body)
 
@@ -1618,7 +1618,7 @@ def check_review_eligibility(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def request_review(order_id: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Solicitar review de producto y feedback del vendedor al comprador."""
+    """Solicitar review al comprador. Requiere confirm=True."""
     try:
         if not confirm:
             return _json({
@@ -1645,7 +1645,7 @@ def request_review(order_id: str, marketplace: str = "", confirm: bool = False) 
 
 @mcp.tool()
 def get_invoices(order_id: str = "", days_back: int = 30, marketplace: str = "") -> str:
-    """Obtener facturas, opcionalmente filtradas por pedido."""
+    """Obtener facturas por pedido o periodo."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1683,7 +1683,7 @@ def download_invoice(invoice_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_order_metrics(days_back: int = 30, granularity: str = "Day", marketplace: str = "") -> str:
-    """Métricas de ventas agregadas SIN esperar informes: unidades, revenue por periodo. Respuesta inmediata."""
+    """Métricas de ventas agregadas. Respuesta inmediata."""
     try:
         client = _get_client(marketplace)
         metrics = client.get_order_metrics(days_back=days_back, granularity=granularity)

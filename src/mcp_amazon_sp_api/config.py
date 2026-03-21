@@ -1,10 +1,15 @@
 """Configuración: carga .env y valida credenciales SP-API."""
 
+import logging
 import os
+import subprocess
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
+
+logger = logging.getLogger(__name__)
 
 MARKETPLACE_ID_ES = "A1RKKUPIHCS9HS"
 
@@ -58,25 +63,67 @@ class SpApiConfig:
         return MARKETPLACE_LANGUAGES.get(self.marketplace, "es_ES")
 
 
+KEYCHAIN_SERVICE = "mcp-amazon-sp-api"
+
+
+def _read_keychain(account: str, service: str = KEYCHAIN_SERVICE) -> str | None:
+    """Lee una credencial del Keychain de macOS. Devuelve None si no existe."""
+    if sys.platform != "darwin":
+        return None
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-s", service, "-a", account, "-w"],
+            capture_output=True, text=True, timeout=5,
+        )
+        if result.returncode == 0:
+            value = result.stdout.strip()
+            logger.debug("Keychain: credencial '%s' encontrada", account)
+            return value
+        logger.debug("Keychain: credencial '%s' no encontrada", account)
+        return None
+    except (FileNotFoundError, subprocess.TimeoutExpired):
+        return None
+
+
+def _resolve_credential(env_key: str) -> str | None:
+    """Resuelve una credencial: 1) env var, 2) Keychain macOS."""
+    value = os.getenv(env_key)
+    if value:
+        return value
+    return _read_keychain(env_key)
+
+
 def load_config(env_file: str | Path | None = ".env") -> SpApiConfig:
-    """Lee credenciales de variables de entorno. Falla con mensaje claro si faltan."""
+    """Lee credenciales: env vars → Keychain macOS → .env. Falla si faltan."""
     if env_file:
         load_dotenv(env_file)
+
+    credentials = {}
+    source = "dotenv"
     required = {
         "SP_API_REFRESH_TOKEN": "refresh_token",
         "LWA_APP_ID": "lwa_app_id",
         "LWA_CLIENT_SECRET": "lwa_client_secret",
     }
-    missing = [k for k in required if not os.getenv(k)]
+
+    for env_key, field_name in required.items():
+        value = _resolve_credential(env_key)
+        if value:
+            credentials[field_name] = value
+        else:
+            credentials[field_name] = None
+
+    missing = [k for k, v in required.items() if not credentials[v]]
     if missing:
         raise EnvironmentError(
-            f"Faltan variables de entorno: {', '.join(missing)}. "
-            "Copia .env.example a .env y rellena tus credenciales."
+            f"Faltan credenciales: {', '.join(missing)}. "
+            "Configúralas en Keychain (security add-generic-password) o en .env."
         )
+
     return SpApiConfig(
-        refresh_token=os.environ["SP_API_REFRESH_TOKEN"],
-        lwa_app_id=os.environ["LWA_APP_ID"],
-        lwa_client_secret=os.environ["LWA_CLIENT_SECRET"],
+        refresh_token=credentials["refresh_token"],
+        lwa_app_id=credentials["lwa_app_id"],
+        lwa_client_secret=credentials["lwa_client_secret"],
         marketplace=os.getenv("SP_API_MARKETPLACE", "ES"),
         seller_id=os.getenv("SP_API_SELLER_ID", ""),
     )

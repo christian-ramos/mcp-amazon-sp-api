@@ -1,6 +1,6 @@
 """Tests de tools MCP: Análisis de competencia."""
 
-from mcp_amazon_sp_api.server import analyze_competitor_prices, compare_with_competitors
+from mcp_amazon_sp_api.tools.competitor_analysis import analyze_competitor_prices, compare_with_competitors
 from .conftest import parse
 
 

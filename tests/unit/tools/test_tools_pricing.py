@@ -1,6 +1,6 @@
 """Tests de tools MCP: Precios y competencia."""
 
-from mcp_amazon_sp_api.server import get_competitive_pricing, get_competitor_offers
+from mcp_amazon_sp_api.tools.pricing import get_competitive_pricing, get_competitor_offers
 from .conftest import parse
 
 

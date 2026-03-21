@@ -2,10 +2,7 @@
 
 import json
 
-from mcp_amazon_sp_api.server import (
-    get_listing_content, get_listing_issues, get_product_type_info,
-    list_my_listings, update_listing_attribute, update_listing_batch,
-)
+from mcp_amazon_sp_api.tools.listings import get_listing_content, get_listing_issues, get_product_type_info, list_my_listings, update_listing_attribute, update_listing_batch
 from .conftest import parse
 
 

@@ -1,6 +1,6 @@
 """Tests de tools MCP: Inventario en tiempo real."""
 
-from mcp_amazon_sp_api.server import get_inventory
+from mcp_amazon_sp_api.tools.inventory_realtime import get_inventory
 from .conftest import parse
 
 

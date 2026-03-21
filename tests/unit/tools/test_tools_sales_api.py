@@ -1,6 +1,6 @@
 """Tests de tools MCP: Sales API."""
 
-from mcp_amazon_sp_api.server import get_order_metrics
+from mcp_amazon_sp_api.tools.sales_api import get_order_metrics
 from .conftest import parse
 
 

@@ -2,6 +2,7 @@
 
 import os
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from dotenv import dotenv_values, load_dotenv
@@ -10,6 +11,11 @@ from dotenv import dotenv_values, load_dotenv
 # se aplique cuando sp_api.base.marketplaces evalúe los endpoints.
 ENV_TEST_PATH = Path(__file__).resolve().parent.parent / ".env.test"
 load_dotenv(ENV_TEST_PATH, override=True)
+
+# SEGURIDAD: bloquear acceso al Keychain en TODOS los tests.
+# Evita que cualquier test pueda leer credenciales reales por accidente.
+_keychain_block = patch("mcp_amazon_sp_api.config._read_keychain", return_value=None)
+_keychain_block.start()
 
 from mcp_amazon_sp_api.config import SpApiConfig
 

@@ -6,7 +6,10 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 
+import base64
+
 from mcp.server.fastmcp import FastMCP
+import mcp.types as mcp_types
 
 from .config import load_config
 from .sp_client import AmazonClient
@@ -19,6 +22,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+TOOLS_PAGE_SIZE = 20
 mcp = FastMCP("amazon-sp-api")
 
 
@@ -38,11 +42,7 @@ def _iso_days_ago(days: int) -> str:
 
 
 def _get_client(marketplace: str = "") -> AmazonClient:
-    """Crea cliente SP-API. Se llama en cada tool para evitar estado global.
-
-    Args:
-        marketplace: Código de marketplace (ej: "ES", "DE", "FR", "IT"). Vacío = default de .env.
-    """
+    """Crea cliente SP-API. Se llama en cada tool para evitar estado global."""
     config = load_config()
     if marketplace:
         from dataclasses import replace
@@ -57,15 +57,7 @@ def _get_client(marketplace: str = "") -> AmazonClient:
 
 @mcp.tool()
 def list_products(keywords: str = "", marketplace: str = "") -> str:
-    """Buscar productos en el catálogo de Amazon por keywords. Devuelve ASIN, título, marca.
-
-    Busca en todo el catálogo de Amazon, no solo en tus productos. Para ver solo tus listings usa list_my_listings.
-    Pagina automáticamente (puede devolver más de 10 resultados).
-
-    Args:
-        keywords: Términos de búsqueda (ej: "NUCASE funda iPhone 16"). Si vacío, busca "funda iPhone".
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Buscar productos en el catálogo de Amazon por keywords. Devuelve ASIN, título, marca."""
     try:
         client = _get_client(marketplace)
         if keywords:
@@ -90,15 +82,7 @@ def list_products(keywords: str = "", marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_product_details(asin: str, marketplace: str = "") -> str:
-    """Detalle completo de un producto: título, marca, imágenes, rankings de ventas.
-
-    Busca en el catálogo de Amazon (cualquier producto, no solo tuyos).
-    Para ver el contenido de TU listing (bullets, keywords, offers, issues) usa get_listing_content.
-
-    Args:
-        asin: El ASIN del producto (ej: "B0G31M4Y7L")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Detalle completo de un producto: título, marca, imágenes, rankings de ventas."""
     try:
         client = _get_client(marketplace)
         item = client.get_catalog_item(asin)
@@ -138,16 +122,7 @@ def get_product_details(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_orders(days_back: int = 7, status: str = "", marketplace: str = "") -> str:
-    """Obtener pedidos recientes. Solo usa CreatedAfter (no CreatedBefore) para evitar errores de timestamp.
-
-    Nota: cada pedido es solo la cabecera. Para ver los productos de un pedido usa get_order_items.
-    Para obtener muchos pedidos con items, considerar get_sales_summary o get_order_metrics que son más eficientes.
-
-    Args:
-        days_back: Número de días hacia atrás (default 7, máx recomendado 30)
-        status: Filtrar por estado (ej: "Shipped", "Unshipped", "Cancelled"). Vacío = todos.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Obtener pedidos recientes. Solo usa CreatedAfter (no CreatedBefore) para evitar errores de timestamp."""
     try:
         client = _get_client(marketplace)
         created_after = _iso_days_ago(days_back)
@@ -174,15 +149,7 @@ def get_orders(days_back: int = 7, status: str = "", marketplace: str = "") -> s
 
 @mcp.tool()
 def get_order_items(order_id: str, marketplace: str = "") -> str:
-    """Obtener los items/productos de un pedido específico. Devuelve SKU, ASIN, título, precio, cantidad.
-
-    Nota: rate limit estricto (~1 req/seg). Evitar llamar en bucle para muchos pedidos.
-    Para análisis de ventas masivo, preferir get_sales_summary o get_order_metrics.
-
-    Args:
-        order_id: ID del pedido de Amazon (ej: "403-1234567-8901234")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Obtener los items/productos de un pedido específico. Devuelve SKU, ASIN, título, precio, cantidad."""
     try:
         client = _get_client(marketplace)
         items = client.get_order_items(order_id)
@@ -205,15 +172,7 @@ def get_order_items(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_sales_summary(days_back: int = 30, marketplace: str = "") -> str:
-    """Resumen agregado de ventas: revenue, unidades y top productos por ASIN.
-
-    Hace 1 llamada por pedido para obtener items — lento con muchos pedidos.
-    Para >50 pedidos considerar get_order_metrics (más rápido, sin desglose por producto).
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Resumen agregado de ventas: revenue, unidades y top productos por ASIN."""
     try:
         client = _get_client(marketplace)
         created_after = _iso_days_ago(days_back)
@@ -285,15 +244,7 @@ def get_sales_summary(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_returns_summary(days_back: int = 30, marketplace: str = "") -> str:
-    """Resumen de devoluciones y reembolsos en un periodo. Pagina automáticamente.
-
-    Nota: los datos financieros tienen un retraso de ~48h respecto al momento actual.
-    Para devoluciones con motivo detallado (DEFECTIVE, CUSTOMER_RETURN, etc.) usar get_fba_returns.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Resumen de devoluciones y reembolsos en un periodo. Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         posted_after = _iso_days_ago(days_back)
@@ -338,12 +289,7 @@ def get_returns_summary(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_order_finances(order_id: str, marketplace: str = "") -> str:
-    """Desglose financiero completo de un pedido: ingresos, fees, refunds, neto, margen.
-
-    Args:
-        order_id: ID del pedido de Amazon (ej: "403-1234567-8901234")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Desglose financiero completo de un pedido: ingresos, fees, refunds, neto, margen."""
     try:
         client = _get_client(marketplace)
         events = client.get_financial_events_for_order(order_id)
@@ -410,14 +356,7 @@ def get_order_finances(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def estimate_fees(asin: str, price: float, is_fba: bool = True, marketplace: str = "") -> str:
-    """Estimar fees de Amazon para un producto a un precio dado. Devuelve desglose de fees y margen neto.
-
-    Args:
-        asin: ASIN del producto
-        price: Precio de venta (en moneda del marketplace)
-        is_fba: Si usa Fulfillment by Amazon (default True)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Estimar fees de Amazon para un producto a un precio dado. Devuelve desglose de fees y margen neto."""
     try:
         client = _get_client(marketplace)
         fees_data = client.get_fees_estimate(asin=asin, price=price, is_fba=is_fba)
@@ -451,16 +390,7 @@ def estimate_fees(asin: str, price: float, is_fba: bool = True, marketplace: str
 
 @mcp.tool()
 def get_profitability_report(days_back: int = 30, max_orders: int = 20, marketplace: str = "") -> str:
-    """Informe de rentabilidad real por SKU: ingresos, fees, devoluciones, margen neto.
-
-    Hace 1 llamada API por pedido (finanzas) — lento. Usar max_orders para limitar.
-    Rate limit estricto en Finances API (~0.5 req/seg).
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        max_orders: Máximo de pedidos a analizar (default 20, máx 50)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Informe de rentabilidad real por SKU: ingresos, fees, devoluciones, margen neto."""
     try:
         client = _get_client(marketplace)
         max_orders = min(max_orders, 50)
@@ -549,12 +479,7 @@ def get_profitability_report(days_back: int = 30, max_orders: int = 20, marketpl
 
 @mcp.tool()
 def get_sales_rankings(asin: str, marketplace: str = "") -> str:
-    """Obtener rankings de ventas (BSR) de un producto por categoría.
-
-    Args:
-        asin: ASIN del producto
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Obtener rankings de ventas (BSR) de un producto por categoría."""
     try:
         client = _get_client(marketplace)
         item = client.get_catalog_item(asin)
@@ -591,14 +516,7 @@ def get_sales_rankings(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_listing_content(sku: str, marketplace: str = "") -> str:
-    """Leer el contenido completo de TU listing: título, bullets, descripción, keywords, ofertas e issues.
-
-    Solo funciona con SKUs de tu cuenta. Para ver productos de otros vendedores usa get_product_details.
-
-    Args:
-        sku: SKU del producto (ej: "1HC17400CC-MTA")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Leer el contenido completo de TU listing: título, bullets, descripción, keywords, ofertas e issues."""
     try:
         client = _get_client(marketplace)
         listing = client.get_listing_item(sku)
@@ -656,17 +574,7 @@ def get_listing_content(sku: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_my_listings(status: str = "", issue_severity: str = "", page_size: int = 10, marketplace: str = "") -> str:
-    """Listar MIS listings (solo productos de mi cuenta). Pagina automáticamente.
-
-    A diferencia de list_products (catálogo general), esto solo devuelve tus propios productos.
-    Cada listing incluye: SKU, ASIN, título, estado (BUYABLE/DISCOVERABLE), issues.
-
-    Args:
-        status: Filtrar por estado (ej: "BUYABLE", "DISCOVERABLE"). Vacío = todos.
-        issue_severity: Filtrar por severidad de issues (ej: "ERROR", "WARNING"). Vacío = todos.
-        page_size: Resultados por página (default 20, máx 20). Pagina automáticamente para obtener todos.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Listar MIS listings (solo productos de mi cuenta). Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         items = client.search_listings_items(
@@ -697,12 +605,7 @@ def list_my_listings(status: str = "", issue_severity: str = "", page_size: int 
 
 @mcp.tool()
 def get_listing_issues(sku: str, marketplace: str = "") -> str:
-    """Ver issues de calidad de un listing: errores, warnings, atributos afectados.
-
-    Args:
-        sku: SKU del producto (ej: "1HC17400CC-MTA")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver issues de calidad de un listing: errores, warnings, atributos afectados."""
     try:
         client = _get_client(marketplace)
         listing = client.get_listing_item(sku)
@@ -729,16 +632,7 @@ def get_listing_issues(sku: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_product_type_info(product_type: str = "", keywords: str = "", marketplace: str = "") -> str:
-    """Buscar product types o ver atributos válidos para un tipo de producto.
-
-    Si se da un product_type, descarga el schema JSON externo y extrae los atributos.
-    Si se dan keywords, busca tipos de producto que coincidan.
-
-    Args:
-        product_type: Tipo exacto (ej: "CELLULAR_PHONE_CASE") para ver su definición. Vacío = buscar.
-        keywords: Palabras clave para buscar tipos de producto (ej: "funda movil", "phone case")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Buscar product types o ver atributos válidos para un tipo de producto."""
     try:
         client = _get_client(marketplace)
         if product_type:
@@ -802,18 +696,7 @@ def update_listing_attribute(
     marketplace: str = "",
     confirm: bool = False,
 ) -> str:
-    """Actualizar un atributo de un listing (título, bullets, descripción, keywords).
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-
-    Args:
-        sku: SKU del producto
-        product_type: Tipo de producto (ej: "PHONE_CASE"). Usar get_product_type_info para encontrarlo.
-        attribute_name: Nombre del atributo (ej: "item_name", "bullet_point", "product_description", "generic_keyword")
-        value: Nuevo valor. Para bullet_point usa JSON array: '["bullet1", "bullet2"]'
-        language_tag: Idioma (default: según marketplace, ej: "es_ES")
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Actualizar un atributo de un listing (título, bullets, descripción, keywords)."""
     try:
         config = load_config()
         if marketplace:
@@ -875,18 +758,7 @@ def update_listing_attribute(
 
 @mcp.tool()
 def update_listing_batch(sku: str, product_type: str, updates: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Actualizar múltiples atributos de un listing de una vez.
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-
-    Args:
-        sku: SKU del producto (ej: "1HC17400CC-MTA")
-        product_type: Tipo de producto (ej: "CELLULAR_PHONE_CASE")
-        updates: JSON con los atributos a actualizar. Ejemplo:
-            {"item_name": "Nuevo título", "bullet_point": ["bullet1", "bullet2"], "product_description": "Descripción"}
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Actualizar múltiples atributos de un listing de una vez."""
     try:
         attrs = json.loads(updates)
         config = load_config()
@@ -953,16 +825,7 @@ def update_listing_batch(sku: str, product_type: str, updates: str, marketplace:
 
 @mcp.tool()
 def request_report(report_type: str, days_back: int = 30, marketplace: str = "") -> str:
-    """Solicitar la generación de un informe de Amazon. Proceso asíncrono: devuelve reportId.
-
-    Flujo: request_report → check_report (polling) → download_report.
-    Los informes tardan entre 30 seg y 10 min dependiendo del tipo.
-
-    Args:
-        report_type: Tipo de informe (ej: "GET_BRAND_ANALYTICS_SEARCH_TERMS_REPORT", "GET_FBA_MYI_UNSUPPRESSED_INVENTORY_DATA")
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Solicitar la generación de un informe de Amazon. Proceso asíncrono: devuelve reportId."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -983,12 +846,7 @@ def request_report(report_type: str, days_back: int = 30, marketplace: str = "")
 
 @mcp.tool()
 def check_report(report_id: str, marketplace: str = "") -> str:
-    """Consultar el estado de un informe solicitado (IN_QUEUE, IN_PROGRESS, DONE, FATAL).
-
-    Args:
-        report_id: ID del informe devuelto por request_report
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Consultar el estado de un informe solicitado (IN_QUEUE, IN_PROGRESS, DONE, FATAL)."""
     try:
         client = _get_client(marketplace)
         status = client.get_report_status(report_id)
@@ -1006,12 +864,7 @@ def check_report(report_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def download_report(report_id: str, marketplace: str = "") -> str:
-    """Descargar el contenido de un informe completado. Primero verifica que esté en DONE.
-
-    Args:
-        report_id: ID del informe (debe estar en estado DONE)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Descargar el contenido de un informe completado. Primero verifica que esté en DONE."""
     try:
         client = _get_client(marketplace)
         status = client.get_report_status(report_id)
@@ -1037,15 +890,7 @@ def download_report(report_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_search_terms(days_back: int = 30, marketplace: str = "") -> str:
-    """Top keywords de búsqueda con click share y conversion share (Brand Analytics).
-
-    Requiere Brand Registry. El informe es asíncrono y puede tardar 1-5 min.
-    Útil para descubrir keywords de alto volumen para optimizar listings.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Top keywords de búsqueda con click share y conversion share (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1063,14 +908,7 @@ def get_search_terms(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_search_performance(asins: str, marketplace: str = "") -> str:
-    """Rendimiento de tus ASINs en búsquedas: impresiones, clics, carrito, compras (Brand Analytics).
-
-    Requiere Brand Registry. Report asíncrono (1-5 min). Usa última semana completa.
-
-    Args:
-        asins: ASINs a analizar separados por coma (ej: "B0G31M4Y7L,B0G31FLWQ4"). Máx ~10 ASINs.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Rendimiento de tus ASINs en búsquedas: impresiones, clics, carrito, compras (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()]
@@ -1086,14 +924,7 @@ def get_search_performance(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_market_basket(days_back: int = 30, marketplace: str = "") -> str:
-    """Productos que los clientes compran junto con los tuyos — análisis cross-sell (Brand Analytics).
-
-    Requiere Brand Registry. Report asíncrono. Usa reportPeriod MONTH por defecto.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30). Se ajusta al último mes completo.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Productos que los clientes compran junto con los tuyos — análisis cross-sell (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1111,14 +942,7 @@ def get_market_basket(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_repeat_purchases(days_back: int = 30, marketplace: str = "") -> str:
-    """Tasa de recompra por ASIN — fidelización de clientes (Brand Analytics).
-
-    Requiere Brand Registry. Report asíncrono. Usa reportPeriod MONTH por defecto.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30). Se ajusta al último mes completo.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Tasa de recompra por ASIN — fidelización de clientes (Brand Analytics)."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1145,14 +969,7 @@ def get_repeat_purchases(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_inventory(marketplace: str = "") -> str:
-    """Stock en FBA por SKU (vía report asíncrono, tarda 1-5 min).
-
-    Para datos en tiempo real sin espera, usar get_inventory.
-    Este report da más detalle (condición, warehouse) pero es más lento.
-
-    Args:
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Stock en FBA por SKU (vía report asíncrono, tarda 1-5 min)."""
     try:
         client = _get_client(marketplace)
         data = client.get_fba_inventory_report()
@@ -1171,16 +988,7 @@ def get_fba_inventory(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_returns(days_back: int = 30, marketplace: str = "") -> str:
-    """Devoluciones FBA con motivo detallado (DEFECTIVE, CUSTOMER_RETURN, etc.) vía report asíncrono.
-
-    Complementa get_returns_summary (Finances) que solo da importes.
-    Este report da el motivo específico de cada devolución.
-    Tarda 1-5 min en generarse.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Devoluciones FBA con motivo detallado (DEFECTIVE, CUSTOMER_RETURN, etc.) vía report asíncrono."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1198,13 +1006,7 @@ def get_fba_returns(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_fba_fees_report(marketplace: str = "") -> str:
-    """Tarifas de almacenamiento FBA: actuales y de largo plazo (2 reports asíncronos, 2-10 min).
-
-    Puede devolver CANCELLED si no hay datos de tarifas o si se solicita con menos de 4h de intervalo.
-
-    Args:
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Tarifas de almacenamiento FBA: actuales y de largo plazo (2 reports asíncronos, 2-10 min)."""
     try:
         client = _get_client(marketplace)
         storage = client.get_fba_storage_fees()
@@ -1226,11 +1028,7 @@ def get_fba_fees_report(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_restock_suggestions(marketplace: str = "") -> str:
-    """Recomendaciones de restock: qué SKUs reabastecer y cuántas unidades enviar (report asíncrono, 1-5 min).
-
-    Args:
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Recomendaciones de restock: qué SKUs reabastecer y cuántas unidades enviar (report asíncrono, 1-5 min)."""
     try:
         client = _get_client(marketplace)
         data = client.get_restock_recommendations()
@@ -1250,14 +1048,7 @@ def get_restock_suggestions(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_sales_and_traffic(days_back: int = 30, marketplace: str = "") -> str:
-    """Métricas de rendimiento por ASIN: sesiones, page views, conversión, Buy Box %. Report asíncrono.
-
-    Tarda 1-5 min. Para métricas rápidas sin desglose por ASIN, usar get_order_metrics.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Métricas de rendimiento por ASIN: sesiones, page views, conversión, Buy Box %. Report asíncrono."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -1280,15 +1071,7 @@ def get_sales_and_traffic(days_back: int = 30, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_inventory(sku: str = "", marketplace: str = "") -> str:
-    """Stock actual en FBA en tiempo real: disponible, inbound, reserved. Pagina automáticamente.
-
-    A diferencia de get_fba_inventory (report asíncrono), estos datos son en tiempo real.
-    Devuelve TODOS los SKUs con stock en FBA (pagina automáticamente, no solo los primeros 50).
-
-    Args:
-        sku: SKU específico (ej: "1HC17400CC-MTA"). Vacío = todos los SKUs. Separar múltiples con coma (máx 50).
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Stock actual en FBA en tiempo real: disponible, inbound, reserved. Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         skus = [s.strip() for s in sku.split(",") if s.strip()] if sku else None
@@ -1309,15 +1092,7 @@ def get_inventory(sku: str = "", marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_competitive_pricing(asins: str, marketplace: str = "") -> str:
-    """Precios competitivos, Buy Box y rankings de ventas por ASIN. Máximo 20 ASINs por llamada.
-
-    Devuelve: landed price, listing price, número de ofertas, sales rankings.
-    Para ver TODAS las ofertas de vendedores de un ASIN individual, usar get_competitor_offers.
-
-    Args:
-        asins: ASINs separados por coma (ej: "B0G31M4Y7L,B0G31FLWQ4"). Máximo 20.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Precios competitivos, Buy Box y rankings de ventas por ASIN. Máximo 20 ASINs por llamada."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()][:20]
@@ -1357,15 +1132,7 @@ def get_competitive_pricing(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_competitor_offers(asin: str, marketplace: str = "") -> str:
-    """Ver TODAS las ofertas de vendedores para un ASIN: precio, condición, FBA/FBM, quién tiene Buy Box.
-
-    Útil para analizar competencia en un producto específico.
-    Para análisis de competencia por keywords (buscar productos similares), usar analyze_competitor_prices.
-
-    Args:
-        asin: ASIN del producto
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver TODAS las ofertas de vendedores para un ASIN: precio, condición, FBA/FBM, quién tiene Buy Box."""
     try:
         client = _get_client(marketplace)
         data = client.get_item_offers(asin)
@@ -1405,13 +1172,7 @@ def get_competitor_offers(asin: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_aplus_content(marketplace: str = "") -> str:
-    """Listar todos los documentos A+ Content de tu cuenta. Pagina automáticamente.
-
-    Requiere Brand Registry.
-
-    Args:
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Listar todos los documentos A+ Content de tu cuenta. Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         docs = client.search_content_documents()
@@ -1436,12 +1197,7 @@ def list_aplus_content(marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_aplus_content(content_key: str, marketplace: str = "") -> str:
-    """Leer el detalle de un documento A+ Content: módulos, textos, imágenes.
-
-    Args:
-        content_key: Content reference key (obtenido de list_aplus_content)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Leer el detalle de un documento A+ Content: módulos, textos, imágenes."""
     try:
         client = _get_client(marketplace)
         doc = client.get_content_document(content_key)
@@ -1453,12 +1209,7 @@ def get_aplus_content(content_key: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_aplus_asin_relations(content_key: str, marketplace: str = "") -> str:
-    """Ver qué ASINs usan un documento A+ Content específico.
-
-    Args:
-        content_key: Content reference key (obtenido de list_aplus_content)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver qué ASINs usan un documento A+ Content específico."""
     try:
         client = _get_client(marketplace)
         asins = client.get_content_asin_relations(content_key)
@@ -1479,14 +1230,7 @@ def get_aplus_asin_relations(content_key: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_cross_marketplace_prices(sku: str, marketplaces: str = "") -> str:
-    """Ver el precio de un SKU en todos los marketplaces europeos.
-
-    Funcionalidad similar a BIL (Build International Listings) de Seller Central.
-
-    Args:
-        sku: SKU del producto
-        marketplaces: Códigos separados por coma (ej: "ES,DE,FR"). Vacío = todos (ES,DE,FR,IT,NL,BE,GB,SE,PL).
-    """
+    """Ver el precio de un SKU en todos los marketplaces europeos."""
     try:
         client = _get_client()
         mp_list = [m.strip() for m in marketplaces.split(",") if m.strip()] if marketplaces else None
@@ -1502,17 +1246,7 @@ def get_cross_marketplace_prices(sku: str, marketplaces: str = "") -> str:
 
 @mcp.tool()
 def update_marketplace_price(sku: str, product_type: str, price: float, marketplace: str, confirm: bool = False) -> str:
-    """Cambiar el precio de un SKU en un marketplace específico.
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-
-    Args:
-        sku: SKU del producto
-        product_type: Tipo de producto (ej: "PHONE_CASE"). Usar get_product_type_info para encontrarlo.
-        price: Nuevo precio (en la moneda local del marketplace)
-        marketplace: Código del marketplace (ej: "DE", "FR", "IT", "ES", "GB")
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Cambiar el precio de un SKU en un marketplace específico."""
     try:
         if not confirm:
             from .clients.pricing_cross import EU_MARKETPLACES
@@ -1555,19 +1289,7 @@ def sync_marketplace_prices(
     marketplace: str = "",
     confirm: bool = False,
 ) -> str:
-    """Sincronizar precio a múltiples marketplaces (estilo BIL).
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-
-    Args:
-        sku: SKU del producto
-        product_type: Tipo de producto (ej: "PHONE_CASE")
-        base_price: Precio base en EUR
-        targets: Marketplaces destino separados por coma (ej: "DE,FR,IT")
-        adjustment_pct: Ajuste porcentual (ej: 5.0 = +5%, -3.0 = -3%). Default 0.
-        marketplace: Código marketplace base para el cliente (ES, DE, FR, IT, GB). Vacío = default de .env.
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Sincronizar precio a múltiples marketplaces (estilo BIL)."""
     try:
         target_list = [t.strip() for t in targets.split(",") if t.strip()]
         adjusted = round(base_price * (1 + adjustment_pct / 100), 2)
@@ -1610,17 +1332,7 @@ def sync_marketplace_prices(
 
 @mcp.tool()
 def analyze_competitor_prices(keywords: str, max_results: int = 10, marketplace: str = "") -> str:
-    """Buscar productos similares de la competencia y comparar precios, rankings y fulfillment.
-
-    Busca por keywords en el catálogo, obtiene precios competitivos de cada resultado,
-    y devuelve todo ordenado por precio (más barato primero).
-    Hace 1 llamada de búsqueda + 1 de pricing batch. Relativamente rápido.
-
-    Args:
-        keywords: Términos de búsqueda (ej: "funda iPhone 16 silicona", "NUCASE Ultra Clear Case")
-        max_results: Máximo de productos a analizar (default 10, máx 20)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Buscar productos similares de la competencia y comparar precios, rankings y fulfillment."""
     try:
         client = _get_client(marketplace)
         results = client.analyze_competitor_prices(keywords, max_results)
@@ -1636,16 +1348,7 @@ def analyze_competitor_prices(keywords: str, max_results: int = 10, marketplace:
 
 @mcp.tool()
 def compare_with_competitors(my_asin: str, keywords: str, max_results: int = 10, marketplace: str = "") -> str:
-    """Comparar tu producto con competidores similares: precio, ranking, número de ofertas.
-
-    Tu ASIN se excluye de la lista de competidores.
-
-    Args:
-        my_asin: Tu ASIN para usar como referencia (ej: "B0G31M4Y7L")
-        keywords: Términos de búsqueda para encontrar competidores (ej: "funda iPhone 16 transparente")
-        max_results: Máximo de competidores a analizar (default 10, máx 20)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Comparar tu producto con competidores similares: precio, ranking, número de ofertas."""
     try:
         client = _get_client(marketplace)
         result = client.compare_with_competitors(my_asin, keywords, max_results)
@@ -1662,13 +1365,7 @@ def compare_with_competitors(my_asin: str, keywords: str, max_results: int = 10,
 
 @mcp.tool()
 def check_listing_restrictions(asin: str, condition: str = "", marketplace: str = "") -> str:
-    """Ver si puedes vender un ASIN en tu marketplace actual.
-
-    Args:
-        asin: ASIN del producto
-        condition: Condición (ej: "new_new", "used_acceptable"). Vacío = todas.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver si puedes vender un ASIN en tu marketplace actual."""
     try:
         client = _get_client(marketplace)
         restrictions = client.get_listings_restrictions(
@@ -1686,14 +1383,7 @@ def check_listing_restrictions(asin: str, condition: str = "", marketplace: str 
 
 @mcp.tool()
 def check_expansion_eligibility(asin: str, marketplaces: str) -> str:
-    """Verificar si puedes vender un ASIN en otros marketplaces europeos.
-
-    Útil antes de expandir un producto a nuevos países.
-
-    Args:
-        asin: ASIN del producto
-        marketplaces: Códigos separados por coma (ej: "DE,FR,IT,GB")
-    """
+    """Verificar si puedes vender un ASIN en otros marketplaces europeos."""
     try:
         client = _get_client()
         targets = [m.strip() for m in marketplaces.split(",") if m.strip()]
@@ -1718,18 +1408,7 @@ def check_expansion_eligibility(asin: str, marketplaces: str) -> str:
 
 @mcp.tool()
 def bulk_update_prices(updates: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Actualizar precios de múltiples SKUs de una vez mediante feed asíncrono.
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-    El feed se procesa en 5-15 min. Usar check_feed para ver el resultado.
-    Para actualizar 1 SKU en 1 marketplace, usar update_marketplace_price (más rápido).
-
-    Args:
-        updates: JSON array con los SKUs y precios. Ejemplo:
-            [{"sku": "1HC17400CC-MTA", "price": 14.99}, {"sku": "1HC16300CC-MTA", "price": 12.99}]
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Actualizar precios de múltiples SKUs de una vez mediante feed asíncrono."""
     try:
         data = json.loads(updates)
         mp = marketplace.upper() or load_config().marketplace
@@ -1760,12 +1439,7 @@ def bulk_update_prices(updates: str, marketplace: str = "", confirm: bool = Fals
 
 @mcp.tool()
 def check_feed(feed_id: str, marketplace: str = "") -> str:
-    """Consultar el estado y resultado de un feed (actualización masiva). Si DONE, descarga el resultado.
-
-    Args:
-        feed_id: ID del feed devuelto por bulk_update_prices
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Consultar el estado y resultado de un feed (actualización masiva). Si DONE, descarga el resultado."""
     try:
         client = _get_client(marketplace)
         status = client.get_feed_status(feed_id)
@@ -1794,16 +1468,7 @@ def check_feed(feed_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def list_fba_shipments(status: str = "", shipment_ids: str = "", marketplace: str = "") -> str:
-    """Ver envíos a FBA y su estado. Pagina automáticamente.
-
-    QueryType DATE_RANGE requiere que haya envíos recientes. Si no devuelve nada,
-    probar con shipment_ids específicos o filtro de estado.
-
-    Args:
-        status: Filtrar por estado (ej: "WORKING", "SHIPPED", "IN_TRANSIT", "RECEIVING", "CLOSED"). Vacío = todos.
-        shipment_ids: IDs específicos separados por coma. Vacío = busca por fecha.
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver envíos a FBA y su estado. Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         ids = [s.strip() for s in shipment_ids.split(",") if s.strip()] if shipment_ids else None
@@ -1831,12 +1496,7 @@ def list_fba_shipments(status: str = "", shipment_ids: str = "", marketplace: st
 
 @mcp.tool()
 def get_fba_shipment_items(shipment_id: str, marketplace: str = "") -> str:
-    """Detalle de items en un envío a FBA: SKU, cantidad enviada vs recibida. Pagina automáticamente.
-
-    Args:
-        shipment_id: ID del envío (ej: "FBA15LGQZWR2")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Detalle de items en un envío a FBA: SKU, cantidad enviada vs recibida. Pagina automáticamente."""
     try:
         client = _get_client(marketplace)
         items = client.get_shipment_items(shipment_id)
@@ -1861,12 +1521,7 @@ def get_fba_shipment_items(shipment_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_inbound_guidance(asins: str, marketplace: str = "") -> str:
-    """Guía de envío a FBA por ASIN: elegibilidad FBA, preparación requerida.
-
-    Args:
-        asins: ASINs separados por coma (ej: "B0G31M4Y7L,B0G31FLWQ4")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Guía de envío a FBA por ASIN: elegibilidad FBA, preparación requerida."""
     try:
         client = _get_client(marketplace)
         asin_list = [a.strip() for a in asins.split(",") if a.strip()]
@@ -1887,12 +1542,7 @@ def get_inbound_guidance(asins: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_messaging_options(order_id: str, marketplace: str = "") -> str:
-    """Ver qué tipos de mensaje puedes enviar al comprador de un pedido.
-
-    Args:
-        order_id: ID del pedido de Amazon (ej: "406-1234567-8901234")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver qué tipos de mensaje puedes enviar al comprador de un pedido."""
     try:
         client = _get_client(marketplace)
         actions = client.get_messaging_actions(order_id)
@@ -1907,17 +1557,7 @@ def get_messaging_options(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def send_buyer_message(order_id: str, message_type: str, body: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Enviar mensaje al comprador de un pedido.
-
-    Requiere confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
-
-    Args:
-        order_id: ID del pedido (ej: "406-1234567-8901234")
-        message_type: Tipo: "confirm_delivery", "confirm_order", "unexpected_problem", "legal_disclosure", "negative_feedback_removal", "send_invoice"
-        body: JSON con el contenido del mensaje (varía según tipo)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Enviar mensaje al comprador de un pedido."""
     try:
         body_data = json.loads(body)
 
@@ -1950,14 +1590,7 @@ def send_buyer_message(order_id: str, message_type: str, body: str, marketplace:
 
 @mcp.tool()
 def check_review_eligibility(order_id: str, marketplace: str = "") -> str:
-    """Ver si puedes solicitar review para un pedido.
-
-    Amazon limita a 1 solicitud por pedido, entre 5 y 30 días después de la entrega.
-
-    Args:
-        order_id: ID del pedido (ej: "406-1234567-8901234")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Ver si puedes solicitar review para un pedido."""
     try:
         client = _get_client(marketplace)
         actions = client.get_solicitation_actions(order_id)
@@ -1969,15 +1602,7 @@ def check_review_eligibility(order_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def request_review(order_id: str, marketplace: str = "", confirm: bool = False) -> str:
-    """Solicitar review de producto y feedback del vendedor al comprador.
-
-    Requiere confirm=True. IRREVERSIBLE: solo se puede enviar 1 vez por pedido (entre 5-30 días post-entrega).
-
-    Args:
-        order_id: ID del pedido (ej: "406-1234567-8901234")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-        confirm: Debe ser True para ejecutar. False = solo muestra el plan.
-    """
+    """Solicitar review de producto y feedback del vendedor al comprador."""
     try:
         if not confirm:
             return _json({
@@ -2004,16 +1629,7 @@ def request_review(order_id: str, marketplace: str = "", confirm: bool = False) 
 
 @mcp.tool()
 def get_invoices(order_id: str = "", days_back: int = 30, marketplace: str = "") -> str:
-    """Obtener facturas, opcionalmente filtradas por pedido.
-
-    NOTA: La Invoices API (v2024-06-19) requiere un rol de facturación especial.
-    Puede devolver Unauthorized si tu cuenta no tiene acceso.
-
-    Args:
-        order_id: ID del pedido. Vacío = todas las facturas del periodo.
-        days_back: Número de días hacia atrás (default 30)
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Obtener facturas, opcionalmente filtradas por pedido."""
     try:
         client = _get_client(marketplace)
         end_date = _iso_now()
@@ -2034,14 +1650,7 @@ def get_invoices(order_id: str = "", days_back: int = 30, marketplace: str = "")
 
 @mcp.tool()
 def download_invoice(invoice_id: str, marketplace: str = "") -> str:
-    """Descargar documento de factura.
-
-    NOTA: Requiere acceso a la Invoices API. Puede devolver Unauthorized.
-
-    Args:
-        invoice_id: ID de la factura
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Descargar documento de factura."""
     try:
         client = _get_client(marketplace)
         doc = client.get_invoice_document(invoice_id)
@@ -2058,17 +1667,7 @@ def download_invoice(invoice_id: str, marketplace: str = "") -> str:
 
 @mcp.tool()
 def get_order_metrics(days_back: int = 30, granularity: str = "Day", marketplace: str = "") -> str:
-    """Métricas de ventas agregadas SIN esperar informes: unidades, revenue por periodo. Respuesta inmediata.
-
-    Alternativa rápida a get_sales_and_traffic (que usa Reports y tarda minutos).
-    Alternativa rápida a get_sales_summary (que hace 1 llamada por pedido).
-    No desglosa por producto — solo totales por intervalo de tiempo.
-
-    Args:
-        days_back: Número de días hacia atrás (default 30)
-        granularity: "Day", "Week" o "Month" (default "Day")
-        marketplace: Código marketplace (ES, DE, FR, IT, GB). Vacío = default de .env.
-    """
+    """Métricas de ventas agregadas SIN esperar informes: unidades, revenue por periodo. Respuesta inmediata."""
     try:
         client = _get_client(marketplace)
         metrics = client.get_order_metrics(days_back=days_back, granularity=granularity)
@@ -2087,7 +1686,31 @@ def get_order_metrics(days_back: int = 30, granularity: str = "Day", marketplace
 # Entry point
 # ---------------------------------------------------------------------------
 
+def _install_paginated_tools_list():
+    """Reemplaza el handler de ListToolsRequest con uno que pagina."""
+
+    async def paginated_handler(req: mcp_types.ListToolsRequest):
+        infos = mcp._tool_manager.list_tools()
+        all_tools = [
+            mcp_types.Tool(
+                name=i.name, title=i.title, description=i.description,
+                inputSchema=i.parameters, outputSchema=i.output_schema,
+                annotations=i.annotations,
+            )
+            for i in infos
+        ]
+        cursor = req.params.cursor if req.params and req.params.cursor else None
+        start = int(base64.b64decode(cursor).decode()) if cursor else 0
+        end = start + TOOLS_PAGE_SIZE
+        page = all_tools[start:end]
+        next_cursor = base64.b64encode(str(end).encode()).decode() if end < len(all_tools) else None
+        return mcp_types.ServerResult(mcp_types.ListToolsResult(tools=page, nextCursor=next_cursor))
+
+    mcp._mcp_server.request_handlers[mcp_types.ListToolsRequest] = paginated_handler
+
+
 def main():
+    _install_paginated_tools_list()
     mcp.run()
 
 

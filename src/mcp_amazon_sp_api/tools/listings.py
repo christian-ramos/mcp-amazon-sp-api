@@ -6,8 +6,36 @@ from ..config import load_config
 from ..helpers import get_client, logger, to_json
 
 
+def _catalog_fallback(client, asin: str) -> dict | None:
+    """Obtiene attributes del Catalog API. Devuelve None si no disponible."""
+    try:
+        catalog = client.get_catalog_item(asin, include_data=["summaries", "attributes"])
+        return {
+            "attributes": catalog.get("attributes", {}),
+            "summaries": catalog.get("summaries", []),
+        }
+    except Exception as e:
+        logger.debug("Catalog fallback para %s no disponible: %s", asin, e)
+        return None
+
+
+def _extract_attr_value(attrs: dict, key: str) -> str | None:
+    """Extrae el primer valor de un atributo de tipo [{value, language_tag, ...}]."""
+    values = attrs.get(key, [])
+    return values[0].get("value") if values else None
+
+
+def _extract_attr_values(attrs: dict, key: str) -> list[str]:
+    """Extrae todos los valores de un atributo de tipo [{value, ...}]."""
+    return [v.get("value") for v in attrs.get(key, []) if v.get("value")]
+
+
 def get_listing_content(sku: str, marketplace: str = "") -> str:
-    """Contenido de tu listing: título, bullets, keywords, offers."""
+    """Contenido de tu listing: título, bullets, keywords, offers y atributos.
+
+    Busca primero en Listings API (datos del seller). Si faltan atributos,
+    hace fallback a Catalog API (datos del catálogo, incluye traducciones BIL).
+    """
     try:
         client = get_client(marketplace)
         listing = client.get_listing_item(sku)
@@ -17,26 +45,73 @@ def get_listing_content(sku: str, marketplace: str = "") -> str:
         attributes = listing.get("attributes", {})
         issues = listing.get("issues", [])
         offers = listing.get("offers", [])
+        asin = summary.get("asin")
 
-        title = attributes.get("item_name", [{}])
-        title = title[0].get("value") if title else None
+        # Extraer atributos del listing (seller)
+        title = _extract_attr_value(attributes, "item_name") or summary.get("itemName")
+        bullets = _extract_attr_values(attributes, "bullet_point")
+        description = _extract_attr_value(attributes, "product_description")
+        keywords = _extract_attr_values(attributes, "generic_keyword")
+        brand = _extract_attr_value(attributes, "brand")
+        color = _extract_attr_value(attributes, "color")
+        size = _extract_attr_value(attributes, "size")
+        material = _extract_attr_value(attributes, "material")
+        compatible_models = _extract_attr_values(attributes, "compatible_phone_models")
+        special_features = _extract_attr_values(attributes, "special_feature")
 
-        bullets = [b.get("value") for b in attributes.get("bullet_point", [])]
+        # Fallback a Catalog API si faltan atributos
+        catalog_fields = []
+        if asin:
+            catalog = _catalog_fallback(client, asin)
+            if catalog:
+                cat_attrs = catalog["attributes"]
+                cat_summary = (catalog["summaries"] or [{}])[0]
 
-        description = attributes.get("product_description", [{}])
-        description = description[0].get("value") if description else None
+                def _fill_single(field_name, attr_key, current):
+                    if current:
+                        return current
+                    value = _extract_attr_value(cat_attrs, attr_key)
+                    if not value and attr_key == "item_name":
+                        value = cat_summary.get("itemName")
+                    if value:
+                        catalog_fields.append(field_name)
+                    return value or current
 
-        keywords = [k.get("value") for k in attributes.get("generic_keyword", [])]
+                def _fill_list(field_name, attr_key, current):
+                    if current:
+                        return current
+                    values = _extract_attr_values(cat_attrs, attr_key)
+                    if values:
+                        catalog_fields.append(field_name)
+                    return values or current
+
+                title = _fill_single("title", "item_name", title)
+                description = _fill_single("description", "product_description", description)
+                brand = _fill_single("brand", "brand", brand)
+                color = _fill_single("color", "color", color)
+                size = _fill_single("size", "size", size)
+                material = _fill_single("material", "material", material)
+                bullets = _fill_list("bulletPoints", "bullet_point", bullets)
+                keywords = _fill_list("backendKeywords", "generic_keyword", keywords)
+                compatible_models = _fill_list("compatibleModels", "compatible_phone_models", compatible_models)
+                special_features = _fill_list("specialFeatures", "special_feature", special_features)
 
         result = {
             "sku": sku,
-            "asin": summary.get("asin"),
+            "asin": asin,
             "status": summary.get("status"),
             "productType": summary.get("productType"),
             "title": title,
             "bulletPoints": bullets,
             "description": description,
             "backendKeywords": keywords,
+            "brand": brand,
+            "color": color,
+            "size": size,
+            "material": material,
+            "compatibleModels": compatible_models,
+            "specialFeatures": special_features,
+            "catalogFallbackFields": catalog_fields if catalog_fields else None,
             "offers": [
                 {
                     "price": o.get("buyingPrice", {}).get("listingPrice", {}),

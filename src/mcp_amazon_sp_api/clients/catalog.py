@@ -16,17 +16,19 @@ class CatalogClient(BaseClient):
         return CatalogItems(credentials=self._credentials, marketplace=self._marketplace)
 
     @throttle_retry()
-    def get_catalog_item(self, asin: str) -> dict:
+    def get_catalog_item(self, asin: str, include_data: list[str] | None = None) -> dict:
         """Detalle de un producto con relationships (parent/child)."""
         try:
             resp = self._catalog_api().get_catalog_item(
                 asin,
-                includedData=[
+                marketplaceIds=[self._marketplace_id],
+                includedData=include_data or [
                     "summaries",
                     "attributes",
                     "images",
                     "salesRanks",
                 ],
+                locale=self._language_tag,
             )
             return resp.payload or {}
         except SellingApiException as e:

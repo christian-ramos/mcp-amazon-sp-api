@@ -1,30 +1,38 @@
 """Tests unitarios para CrossMarketplacePricingClient."""
 
-from unittest.mock import MagicMock, patch, call
-from types import SimpleNamespace
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from mcp_amazon_sp_api.sp_client import AmazonClient
-from mcp_amazon_sp_api.clients.pricing_cross import EU_MARKETPLACES
-from .conftest import make_response, make_api_error, FAKE_CONFIG
+from mcp_amazon_sp_api.config import EU_MARKETPLACES
+from .conftest import make_response, make_api_error
 
 
 class TestGetPricesAllMarketplaces:
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_returns_prices_for_specified_marketplaces(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
-        mock_api.get_listings_item.return_value = make_response({
-            "offers": [{"buyingPrice": {"listingPrice": {"amount": "12.99", "currencyCode": "EUR"}}, "fulfillmentChannel": "AFN"}],
-            "status": "BUYABLE",
-        })
+        mock_api.get_listings_item.return_value = make_response(
+            {
+                "offers": [
+                    {
+                        "buyingPrice": {
+                            "listingPrice": {"amount": "12.99", "currencyCode": "EUR"}
+                        },
+                        "fulfillmentChannel": "AFN",
+                    }
+                ],
+                "status": "BUYABLE",
+            }
+        )
         result = client.get_prices_all_marketplaces("SKU-1", marketplaces=["ES", "DE"])
         assert len(result) == 2
         assert result[0]["marketplace"] == "ES"
         assert result[0]["price"] == "12.99"
 
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_handles_no_offers(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
@@ -33,7 +41,7 @@ class TestGetPricesAllMarketplaces:
         assert result[0]["price"] is None
         assert result[0]["status"] == "NO_OFFER"
 
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_handles_api_error_gracefully(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
@@ -47,7 +55,7 @@ class TestGetPricesAllMarketplaces:
         assert "error" in result[0]
         assert "no soportado" in result[0]["error"]
 
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_defaults_to_all_eu(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
@@ -57,13 +65,17 @@ class TestGetPricesAllMarketplaces:
 
 
 class TestUpdatePrice:
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_updates_price(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
-        mock_api.patch_listings_item.return_value = make_response({
-            "sku": "SKU-1", "status": "ACCEPTED", "submissionId": "SUB-1",
-        })
+        mock_api.patch_listings_item.return_value = make_response(
+            {
+                "sku": "SKU-1",
+                "status": "ACCEPTED",
+                "submissionId": "SUB-1",
+            }
+        )
         result = client.update_price("SKU-1", "WATER_BOTTLE", 14.99, "DE")
         assert result["status"] == "ACCEPTED"
         body = mock_api.patch_listings_item.call_args[1]["body"]
@@ -78,7 +90,7 @@ class TestUpdatePrice:
         with pytest.raises(RuntimeError, match="no soportado"):
             client.update_price("SKU-1", "WATER_BOTTLE", 10.0, "XX")
 
-    @patch.object(AmazonClient, "_cross_listings_api")
+    @patch.object(AmazonClient, "_listings_api")
     def test_raises_on_api_error(self, mock_api_factory, client):
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
@@ -99,14 +111,18 @@ class TestSyncPrices:
     @patch.object(AmazonClient, "update_price")
     def test_applies_adjustment(self, mock_update, client):
         mock_update.return_value = {"status": "ACCEPTED", "issues": []}
-        result = client.sync_prices("SKU-1", "WATER_BOTTLE", 10.00, ["DE"], adjustment_pct=10.0)
+        result = client.sync_prices(
+            "SKU-1", "WATER_BOTTLE", 10.00, ["DE"], adjustment_pct=10.0
+        )
         assert result[0]["price"] == 11.00
         mock_update.assert_called_once_with("SKU-1", "WATER_BOTTLE", 11.00, "DE")
 
     @patch.object(AmazonClient, "update_price")
     def test_negative_adjustment(self, mock_update, client):
         mock_update.return_value = {"status": "ACCEPTED", "issues": []}
-        result = client.sync_prices("SKU-1", "WATER_BOTTLE", 10.00, ["FR"], adjustment_pct=-5.0)
+        result = client.sync_prices(
+            "SKU-1", "WATER_BOTTLE", 10.00, ["FR"], adjustment_pct=-5.0
+        )
         assert result[0]["price"] == 9.50
 
     @patch.object(AmazonClient, "update_price")

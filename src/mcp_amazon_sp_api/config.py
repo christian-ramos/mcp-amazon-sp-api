@@ -8,38 +8,102 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from dotenv import load_dotenv
+from sp_api.base import Marketplaces
 
 logger = logging.getLogger(__name__)
 
 MARKETPLACE_ID_ES = "A1RKKUPIHCS9HS"
 
-MARKETPLACE_IDS = {
-    "ES": "A1RKKUPIHCS9HS",
-    "US": "ATVPDKIKX0DER",
-    "DE": "A1PA6795UKMFR9",
-    "FR": "A13V1IB3VIYZZH",
-    "IT": "APJ6JRA9NG5V4",
-    "GB": "A1F83G8C2ARO7P",
+MARKETPLACES = {
+    "ES": {
+        "id": "A1RKKUPIHCS9HS",
+        "currency": "EUR",
+        "lang": "es_ES",
+        "marketplace": Marketplaces.ES,
+    },
+    "US": {
+        "id": "ATVPDKIKX0DER",
+        "currency": "USD",
+        "lang": "en_US",
+        "marketplace": Marketplaces.US,
+    },
+    "DE": {
+        "id": "A1PA6795UKMFR9",
+        "currency": "EUR",
+        "lang": "de_DE",
+        "marketplace": Marketplaces.DE,
+    },
+    "FR": {
+        "id": "A13V1IB3VIYZZH",
+        "currency": "EUR",
+        "lang": "fr_FR",
+        "marketplace": Marketplaces.FR,
+    },
+    "IT": {
+        "id": "APJ6JRA9NG5V4",
+        "currency": "EUR",
+        "lang": "it_IT",
+        "marketplace": Marketplaces.IT,
+    },
+    "GB": {
+        "id": "A1F83G8C2ARO7P",
+        "currency": "GBP",
+        "lang": "en_GB",
+        "marketplace": Marketplaces.UK,
+    },
+    "NL": {
+        "id": "A1805IZSGTT6HS",
+        "currency": "EUR",
+        "lang": "nl_NL",
+        "marketplace": Marketplaces.NL,
+    },
+    "BE": {
+        "id": "AMEN7PMS3EDWL",
+        "currency": "EUR",
+        "lang": "fr_BE",
+        "marketplace": Marketplaces.BE,
+    },
+    "PL": {
+        "id": "A1C3SOZRARQ6R3",
+        "currency": "PLN",
+        "lang": "pl_PL",
+        "marketplace": Marketplaces.PL,
+    },
+    "SE": {
+        "id": "A2NODRKZP88ZB9",
+        "currency": "SEK",
+        "lang": "sv_SE",
+        "marketplace": Marketplaces.SE,
+    },
+    "AE": {
+        "id": "A2VIGQ35RCS4UG",
+        "currency": "AED",
+        "lang": "ar_AE",
+        "marketplace": Marketplaces.AE,
+    },
+    "SA": {
+        "id": "A17E79C6D8DWNP",
+        "currency": "SAR",
+        "lang": "ar_SA",
+        "marketplace": Marketplaces.SA,
+    },
+    "IE": {
+        "id": "A28R8IXHR4HQHZ",
+        "currency": "EUR",
+        "lang": "en_IE",
+        "marketplace": Marketplaces.IE,
+    },
 }
 
-MARKETPLACE_CURRENCIES = {
-    "ES": "EUR",
-    "US": "USD",
-    "DE": "EUR",
-    "FR": "EUR",
-    "IT": "EUR",
-    "GB": "GBP",
+EU_MARKETPLACE_CODES: set[str] = {"ES", "DE", "FR", "IT", "NL", "BE", "GB", "SE", "PL"}
+EU_MARKETPLACES = {
+    code: data for code, data in MARKETPLACES.items() if code in EU_MARKETPLACE_CODES
 }
 
-
-MARKETPLACE_LANGUAGES = {
-    "ES": "es_ES",
-    "US": "en_US",
-    "DE": "de_DE",
-    "FR": "fr_FR",
-    "IT": "it_IT",
-    "GB": "en_GB",
-}
+# Derived dicts for backward compatibility
+MARKETPLACE_IDS = {code: data["id"] for code, data in MARKETPLACES.items()}
+MARKETPLACE_CURRENCIES = {code: data["currency"] for code, data in MARKETPLACES.items()}
+MARKETPLACE_LANGUAGES = {code: data["lang"] for code, data in MARKETPLACES.items()}
 
 
 @dataclass(frozen=True)
@@ -73,7 +137,9 @@ def _read_keychain(account: str, service: str = KEYCHAIN_SERVICE) -> str | None:
     try:
         result = subprocess.run(
             ["security", "find-generic-password", "-s", service, "-a", account, "-w"],
-            capture_output=True, text=True, timeout=5,
+            capture_output=True,
+            text=True,
+            timeout=5,
         )
         if result.returncode == 0:
             value = result.stdout.strip()
@@ -99,7 +165,6 @@ def load_config(env_file: str | Path | None = ".env") -> SpApiConfig:
         load_dotenv(env_file)
 
     credentials = {}
-    source = "dotenv"
     required = {
         "SP_API_REFRESH_TOKEN": "refresh_token",
         "LWA_APP_ID": "lwa_app_id",

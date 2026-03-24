@@ -9,7 +9,9 @@ from ..helpers import get_client, logger, to_json
 def _catalog_fallback(client, asin: str) -> dict | None:
     """Obtiene attributes del Catalog API. Devuelve None si no disponible."""
     try:
-        catalog = client.get_catalog_item(asin, include_data=["summaries", "attributes"])
+        catalog = client.get_catalog_item(
+            asin, include_data=["summaries", "attributes"]
+        )
         return {
             "attributes": catalog.get("attributes", {}),
             "summaries": catalog.get("summaries", []),
@@ -86,15 +88,21 @@ def get_listing_content(sku: str, marketplace: str = "") -> str:
                     return values or current
 
                 title = _fill_single("title", "item_name", title)
-                description = _fill_single("description", "product_description", description)
+                description = _fill_single(
+                    "description", "product_description", description
+                )
                 brand = _fill_single("brand", "brand", brand)
                 color = _fill_single("color", "color", color)
                 size = _fill_single("size", "size", size)
                 material = _fill_single("material", "material", material)
                 bullets = _fill_list("bulletPoints", "bullet_point", bullets)
                 keywords = _fill_list("backendKeywords", "generic_keyword", keywords)
-                compatible_models = _fill_list("compatibleModels", "compatible_phone_models", compatible_models)
-                special_features = _fill_list("specialFeatures", "special_feature", special_features)
+                compatible_models = _fill_list(
+                    "compatibleModels", "compatible_phone_models", compatible_models
+                )
+                special_features = _fill_list(
+                    "specialFeatures", "special_feature", special_features
+                )
 
         result = {
             "sku": sku,
@@ -136,7 +144,13 @@ def get_listing_content(sku: str, marketplace: str = "") -> str:
         logger.error("Error en get_listing_content: %s", e)
         return to_json({"error": str(e)})
 
-def list_my_listings(status: str = "", issue_severity: str = "", page_size: int = 10, marketplace: str = "") -> str:
+
+def list_my_listings(
+    status: str = "",
+    issue_severity: str = "",
+    page_size: int = 10,
+    marketplace: str = "",
+) -> str:
     """Listar todos tus listings con estado e issues."""
     try:
         client = get_client(marketplace)
@@ -151,19 +165,22 @@ def list_my_listings(status: str = "", issue_severity: str = "", page_size: int 
             summaries = item.get("summaries", [{}])
             summary = summaries[0] if summaries else {}
             issues = item.get("issues", [])
-            result.append({
-                "sku": item.get("sku"),
-                "asin": summary.get("asin"),
-                "title": summary.get("itemName"),
-                "status": summary.get("status"),
-                "productType": summary.get("productType"),
-                "issueCount": len(issues),
-                "issueSeverities": list({i.get("severity") for i in issues}),
-            })
+            result.append(
+                {
+                    "sku": item.get("sku"),
+                    "asin": summary.get("asin"),
+                    "title": summary.get("itemName"),
+                    "status": summary.get("status"),
+                    "productType": summary.get("productType"),
+                    "issueCount": len(issues),
+                    "issueSeverities": list({i.get("severity") for i in issues}),
+                }
+            )
         return to_json(result)
     except Exception as e:
         logger.error("Error en list_my_listings: %s", e)
         return to_json({"error": str(e)})
+
 
 def get_listing_issues(sku: str, marketplace: str = "") -> str:
     """Issues de calidad de un listing."""
@@ -190,7 +207,10 @@ def get_listing_issues(sku: str, marketplace: str = "") -> str:
         logger.error("Error en get_listing_issues: %s", e)
         return to_json({"error": str(e)})
 
-def get_product_type_info(product_type: str = "", keywords: str = "", marketplace: str = "") -> str:
+
+def get_product_type_info(
+    product_type: str = "", keywords: str = "", marketplace: str = ""
+) -> str:
     """Atributos válidos de un product type o buscar tipos."""
     try:
         client = get_client(marketplace)
@@ -198,13 +218,18 @@ def get_product_type_info(product_type: str = "", keywords: str = "", marketplac
             definition = client.get_product_type_definition(product_type)
             schema = definition.get("schema", {})
 
-            properties = schema.get("properties", {}).get("attributes", {}).get("properties", {})
-            required = schema.get("properties", {}).get("attributes", {}).get("required", [])
+            properties = (
+                schema.get("properties", {}).get("attributes", {}).get("properties", {})
+            )
+            required = (
+                schema.get("properties", {}).get("attributes", {}).get("required", [])
+            )
 
             if not properties:
                 schema_link = schema.get("link", {}).get("resource")
                 if schema_link:
                     import httpx
+
                     resp = httpx.get(schema_link, timeout=60)
                     if resp.status_code == 200:
                         schema_data = resp.json()
@@ -213,11 +238,13 @@ def get_product_type_info(product_type: str = "", keywords: str = "", marketplac
 
             attrs = []
             for name, prop in list(properties.items())[:50]:
-                attrs.append({
-                    "name": name,
-                    "title": prop.get("title", name),
-                    "required": name in required,
-                })
+                attrs.append(
+                    {
+                        "name": name,
+                        "title": prop.get("title", name),
+                        "required": name in required,
+                    }
+                )
 
             result = {
                 "productType": product_type,
@@ -241,6 +268,7 @@ def get_product_type_info(product_type: str = "", keywords: str = "", marketplac
         logger.error("Error en get_product_type_info: %s", e)
         return to_json({"error": str(e)})
 
+
 def update_listing_attribute(
     sku: str,
     product_type: str,
@@ -255,24 +283,27 @@ def update_listing_attribute(
         config = load_config()
         if marketplace:
             from dataclasses import replace as dc_replace
+
             config = dc_replace(config, marketplace=marketplace.upper())
         lang = language_tag or config.language_tag
         mp = marketplace.upper() or config.marketplace
 
         if not confirm:
-            return to_json({
-                "action": "UPDATE_LISTING_ATTRIBUTE",
-                "confirmed": False,
-                "plan": {
-                    "sku": sku,
-                    "marketplace": mp,
-                    "productType": product_type,
-                    "attribute": attribute_name,
-                    "newValue": value,
-                    "language": lang,
-                },
-                "message": f"Se va a actualizar el atributo '{attribute_name}' del SKU '{sku}' en {mp}. Llama de nuevo con confirm=True para ejecutar.",
-            })
+            return to_json(
+                {
+                    "action": "UPDATE_LISTING_ATTRIBUTE",
+                    "confirmed": False,
+                    "plan": {
+                        "sku": sku,
+                        "marketplace": mp,
+                        "productType": product_type,
+                        "attribute": attribute_name,
+                        "newValue": value,
+                        "language": lang,
+                    },
+                    "message": f"Se va a actualizar el atributo '{attribute_name}' del SKU '{sku}' en {mp}. Llama de nuevo con confirm=True para ejecutar.",
+                }
+            )
 
         client = get_client(marketplace)
         marketplace_id = config.marketplace_id
@@ -285,15 +316,27 @@ def update_listing_attribute(
                     for v in parsed
                 ]
             else:
-                patch_value = [{"value": value, "language_tag": lang, "marketplace_id": marketplace_id}]
+                patch_value = [
+                    {
+                        "value": value,
+                        "language_tag": lang,
+                        "marketplace_id": marketplace_id,
+                    }
+                ]
         except (json.JSONDecodeError, TypeError):
-            patch_value = [{"value": value, "language_tag": lang, "marketplace_id": marketplace_id}]
+            patch_value = [
+                {"value": value, "language_tag": lang, "marketplace_id": marketplace_id}
+            ]
 
-        patches = [{
-            "op": "replace",
-            "path": f"/attributes/{attribute_name}",
-            "value": patch_value,
-        }]
+        home_mp = load_config().marketplace
+        op = "replace" if mp == home_mp else "add"
+        patches = [
+            {
+                "op": op,
+                "path": f"/attributes/{attribute_name}",
+                "value": patch_value,
+            }
+        ]
 
         resp = client.patch_listing_item(sku, product_type, patches)
 
@@ -308,34 +351,46 @@ def update_listing_attribute(
         logger.error("Error en update_listing_attribute: %s", e)
         return to_json({"error": str(e)})
 
-def update_listing_batch(sku: str, product_type: str, updates: str, marketplace: str = "", confirm: bool = False) -> str:
+
+def update_listing_batch(
+    sku: str,
+    product_type: str,
+    updates: str,
+    marketplace: str = "",
+    confirm: bool = False,
+) -> str:
     """Actualizar múltiples atributos de un listing. Requiere confirm=True."""
     try:
         attrs = json.loads(updates)
         config = load_config()
         if marketplace:
             from dataclasses import replace as dc_replace
+
             config = dc_replace(config, marketplace=marketplace.upper())
         mp = marketplace.upper() or config.marketplace
 
         if not confirm:
-            return to_json({
-                "action": "UPDATE_LISTING_BATCH",
-                "confirmed": False,
-                "plan": {
-                    "sku": sku,
-                    "marketplace": mp,
-                    "productType": product_type,
-                    "attributesToUpdate": list(attrs.keys()),
-                    "values": attrs,
-                },
-                "message": f"Se van a actualizar {len(attrs)} atributos ({', '.join(attrs.keys())}) del SKU '{sku}' en {mp}. Llama de nuevo con confirm=True para ejecutar.",
-            })
+            return to_json(
+                {
+                    "action": "UPDATE_LISTING_BATCH",
+                    "confirmed": False,
+                    "plan": {
+                        "sku": sku,
+                        "marketplace": mp,
+                        "productType": product_type,
+                        "attributesToUpdate": list(attrs.keys()),
+                        "values": attrs,
+                    },
+                    "message": f"Se van a actualizar {len(attrs)} atributos ({', '.join(attrs.keys())}) del SKU '{sku}' en {mp}. Llama de nuevo con confirm=True para ejecutar.",
+                }
+            )
 
         client = get_client(marketplace)
         lang = config.language_tag
         marketplace_id = config.marketplace_id
 
+        home_mp = load_config().marketplace
+        op = "replace" if mp == home_mp else "add"
         patches = []
         for attr_name, attr_value in attrs.items():
             if isinstance(attr_value, list):
@@ -344,13 +399,21 @@ def update_listing_batch(sku: str, product_type: str, updates: str, marketplace:
                     for v in attr_value
                 ]
             else:
-                patch_value = [{"value": attr_value, "language_tag": lang, "marketplace_id": marketplace_id}]
+                patch_value = [
+                    {
+                        "value": attr_value,
+                        "language_tag": lang,
+                        "marketplace_id": marketplace_id,
+                    }
+                ]
 
-            patches.append({
-                "op": "replace",
-                "path": f"/attributes/{attr_name}",
-                "value": patch_value,
-            })
+            patches.append(
+                {
+                    "op": op,
+                    "path": f"/attributes/{attr_name}",
+                    "value": patch_value,
+                }
+            )
 
         resp = client.patch_listing_item(sku, product_type, patches)
 

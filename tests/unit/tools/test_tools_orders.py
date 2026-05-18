@@ -43,7 +43,7 @@ class TestGetOrders:
 class TestGetOrderItems:
     def test_returns_items(self, mock_client):
         mock_client.get_order_items.return_value = [{
-            "ASIN": "B001", "SellerSKU": "SKU-001", "Title": "Funda iPhone 16",
+            "ASIN": "B001", "SellerSKU": "SKU-001", "Title": "Water Bottle 500ml",
             "QuantityOrdered": 2,
             "ItemPrice": {"Amount": "19.99", "CurrencyCode": "EUR"},
             "ItemTax": {"Amount": "4.20", "CurrencyCode": "EUR"},
@@ -64,9 +64,9 @@ class TestGetSalesSummary:
             {"AmazonOrderId": "222", "OrderStatus": "Shipped", "OrderTotal": {"Amount": "29.99", "CurrencyCode": "EUR"}, "NumberOfItemsShipped": 2, "NumberOfItemsUnshipped": 0},
         ]
         mock_client.get_order_items.side_effect = [
-            [{"ASIN": "B001", "Title": "Funda A", "QuantityOrdered": 1, "ItemPrice": {"Amount": "19.99"}}],
-            [{"ASIN": "B001", "Title": "Funda A", "QuantityOrdered": 1, "ItemPrice": {"Amount": "14.99"}},
-             {"ASIN": "B002", "Title": "Funda B", "QuantityOrdered": 1, "ItemPrice": {"Amount": "15.00"}}],
+            [{"ASIN": "B001", "Title": "Bottle A", "QuantityOrdered": 1, "ItemPrice": {"Amount": "19.99"}}],
+            [{"ASIN": "B001", "Title": "Bottle A", "QuantityOrdered": 1, "ItemPrice": {"Amount": "14.99"}},
+             {"ASIN": "B002", "Title": "Bottle B", "QuantityOrdered": 1, "ItemPrice": {"Amount": "15.00"}}],
         ]
         result = parse(get_sales_summary(days_back=30))
         assert result["totalOrders"] == 2

@@ -254,7 +254,7 @@ def get_product_type_info(
                 "attributes": attrs,
             }
         else:
-            types = client.search_product_types(keywords=keywords or "phone case")
+            types = client.search_product_types(keywords=keywords or "water bottle")
             result = [
                 {
                     "name": t.get("name"),

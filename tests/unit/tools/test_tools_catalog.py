@@ -9,16 +9,16 @@ from .conftest import parse
 class TestListProducts:
     def test_with_keywords(self, mock_client):
         mock_client.search_catalog_items.return_value = [
-            {"asin": "B001", "summaries": [{"itemName": "Funda iPhone 16", "brand": "Acme"}]}
+            {"asin": "B001", "summaries": [{"itemName": "Water Bottle 500ml", "brand": "Acme"}]}
         ]
-        result = parse(list_products(keywords="funda"))
+        result = parse(list_products(keywords="bottle"))
         assert result[0]["asin"] == "B001"
-        mock_client.search_catalog_items.assert_called_once_with(keywords="funda")
+        mock_client.search_catalog_items.assert_called_once_with(keywords="bottle")
 
     def test_without_keywords_uses_default(self, mock_client):
         mock_client.search_catalog_items.return_value = []
         list_products()
-        mock_client.search_catalog_items.assert_called_once_with(keywords="phone case")
+        mock_client.search_catalog_items.assert_called_once_with(keywords="water bottle")
 
     def test_handles_empty_summaries(self, mock_client):
         mock_client.search_catalog_items.return_value = [{"asin": "B001", "summaries": []}]
@@ -32,11 +32,11 @@ class TestListProducts:
 class TestGetProductDetails:
     def test_basic_details(self, mock_client):
         mock_client.get_catalog_item.return_value = {
-            "summaries": [{"itemName": "Funda iPhone 16 Pro", "brand": "Acme", "manufacturer": "Acme SL", "classification": {"displayName": "Cases"}}],
+            "summaries": [{"itemName": "Water Bottle 1L Stainless Steel", "brand": "Acme", "manufacturer": "Acme Co.", "classification": {"displayName": "Bottles"}}],
             "relationships": [], "images": [{"images": [{"url": "http://img1"}, {"url": "http://img2"}]}], "salesRanks": [{"rank": 5000}],
         }
         result = parse(get_product_details(asin="B001"))
-        assert result["title"] == "Funda iPhone 16 Pro"
+        assert result["title"] == "Water Bottle 1L Stainless Steel"
         assert result["imageCount"] == 2
 
     def test_parent_child_relationships(self, mock_client):
@@ -56,10 +56,10 @@ class TestGetProductDetails:
 class TestGetSalesRankings:
     def test_returns_rankings(self, mock_client):
         mock_client.get_catalog_item.return_value = {
-            "summaries": [{"itemName": "Funda iPhone 16"}],
+            "summaries": [{"itemName": "Water Bottle 500ml"}],
             "salesRanks": [{"marketplaceId": "A1RKKUPIHCS9HS", "ranks": [
-                {"title": "Electrónica", "rank": 5000, "link": "http://..."},
-                {"title": "Fundas para móvil", "rank": 150, "link": "http://..."},
+                {"title": "Kitchen & Dining", "rank": 5000, "link": "http://..."},
+                {"title": "Reusable Water Bottles", "rank": 150, "link": "http://..."},
             ]}],
         }
         result = parse(get_sales_rankings(asin="B001"))

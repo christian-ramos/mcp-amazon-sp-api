@@ -13,12 +13,12 @@ from .conftest import parse
 class TestGetSearchTerms:
     def test_returns_search_terms(self, mock_client):
         mock_client.get_search_terms_report.return_value = [
-            {"term": "funda iphone 16", "clickShare": "5.2"},
-            {"term": "carcasa iphone", "clickShare": "3.1"},
+            {"term": "water bottle 500ml", "clickShare": "5.2"},
+            {"term": "stainless steel bottle", "clickShare": "3.1"},
         ]
         result = parse(get_search_terms(days_back=30))
         assert result["totalTerms"] == 2
-        assert result["searchTerms"][0]["term"] == "funda iphone 16"
+        assert result["searchTerms"][0]["term"] == "water bottle 500ml"
 
     def test_limits_to_100(self, mock_client):
         mock_client.get_search_terms_report.return_value = [
@@ -37,7 +37,7 @@ class TestGetSearchTerms:
 class TestGetSearchPerformance:
     def test_returns_performance(self, mock_client):
         mock_client.get_search_query_performance.return_value = [
-            {"query": "funda", "impressions": 1000, "clicks": 50},
+            {"query": "bottle", "impressions": 1000, "clicks": 50},
         ]
         result = parse(get_search_performance(asins="B001,B002"))
         assert result["totalEntries"] == 1

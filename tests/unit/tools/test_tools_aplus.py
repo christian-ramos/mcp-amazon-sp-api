@@ -14,16 +14,16 @@ class TestListAplusContent:
         mock_client.search_content_documents.return_value = [
             {
                 "contentReferenceKey": "KEY-1",
-                "contentMetadata": {"name": "Funda iPhone A+", "status": "APPROVED", "badgeSet": [], "updateTime": "2025-01-15"},
+                "contentMetadata": {"name": "Water Bottle A+", "status": "APPROVED", "badgeSet": [], "updateTime": "2025-01-15"},
             },
             {
                 "contentReferenceKey": "KEY-2",
-                "contentMetadata": {"name": "Carcasa A+", "status": "DRAFT", "badgeSet": [], "updateTime": "2025-02-01"},
+                "contentMetadata": {"name": "Thermos A+", "status": "DRAFT", "badgeSet": [], "updateTime": "2025-02-01"},
             },
         ]
         result = parse(list_aplus_content())
         assert result["totalDocuments"] == 2
-        assert result["documents"][0]["name"] == "Funda iPhone A+"
+        assert result["documents"][0]["name"] == "Water Bottle A+"
         assert result["documents"][1]["status"] == "DRAFT"
 
     def test_empty_list(self, mock_client):

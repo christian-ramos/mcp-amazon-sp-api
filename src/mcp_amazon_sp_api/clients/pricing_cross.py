@@ -91,7 +91,7 @@ class CrossMarketplacePricingClient(BaseClient):
 
         Args:
             sku: SKU del producto.
-            product_type: Tipo de producto (ej: "PHONE_CASE").
+            product_type: Tipo de producto (ej: "WATER_BOTTLE").
             price: Nuevo precio.
             marketplace: Código de marketplace (ej: "DE").
         """

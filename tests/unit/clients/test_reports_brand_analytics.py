@@ -58,10 +58,10 @@ class TestParseTsv:
 
 class TestParseReport:
     def test_json_array(self):
-        content = '[{"term": "funda iphone", "rank": 1}]'
+        content = '[{"term": "water bottle", "rank": 1}]'
         data = _parse_report(content)
         assert len(data) == 1
-        assert data[0]["term"] == "funda iphone"
+        assert data[0]["term"] == "water bottle"
 
     def test_json_object_with_data_key(self):
         content = '{"dataByAsin": [{"asin": "B001"}]}'
@@ -74,9 +74,9 @@ class TestParseReport:
         assert data[0]["asin"] == "B001"
 
     def test_tsv_fallback(self):
-        content = "keyword\trank\nfunda\t1\n"
+        content = "keyword\trank\nbottle\t1\n"
         data = _parse_report(content)
-        assert data[0]["keyword"] == "funda"
+        assert data[0]["keyword"] == "bottle"
 
 
 # ---------------------------------------------------------------------------
@@ -88,9 +88,9 @@ class TestBrandAnalyticsMethods:
 
     @patch.object(AmazonClient, "request_and_download_report")
     def test_get_search_terms_report(self, mock_rad, client):
-        mock_rad.return_value = '[{"term": "funda"}]'
+        mock_rad.return_value = '[{"term": "bottle"}]'
         result = client.get_search_terms_report("2025-01-05", "2025-01-11")
-        assert result[0]["term"] == "funda"
+        assert result[0]["term"] == "bottle"
         mock_rad.assert_called_once_with(
             SEARCH_TERMS, "2025-01-05", "2025-01-11",
             poll_interval=15, timeout=600,
@@ -99,7 +99,7 @@ class TestBrandAnalyticsMethods:
 
     @patch.object(AmazonClient, "request_and_download_report")
     def test_get_search_query_performance(self, mock_rad, client):
-        mock_rad.return_value = '[{"query": "funda iphone", "impressions": 100}]'
+        mock_rad.return_value = '[{"query": "water bottle", "impressions": 100}]'
         result = client.get_search_query_performance(["B001", "B002"], "2025-01-05", "2025-01-11")
         assert result[0]["impressions"] == 100
         assert mock_rad.call_args[0][0] == SEARCH_QUERY_PERFORMANCE
@@ -124,10 +124,10 @@ class TestBrandAnalyticsMethods:
 
     @patch.object(AmazonClient, "request_and_download_report")
     def test_tsv_content_parsed(self, mock_rad, client):
-        mock_rad.return_value = "keyword\trank\nfunda iphone\t1\ncarcasa\t2\n"
+        mock_rad.return_value = "keyword\trank\nwater bottle\t1\nthermos\t2\n"
         result = client.get_search_terms_report("2025-01-01", "2025-01-31")
         assert len(result) == 2
-        assert result[0]["keyword"] == "funda iphone"
+        assert result[0]["keyword"] == "water bottle"
 
     @patch.object(AmazonClient, "request_and_download_report")
     def test_propagates_error(self, mock_rad, client):

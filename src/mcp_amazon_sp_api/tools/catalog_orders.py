@@ -10,7 +10,7 @@ def list_products(keywords: str = "", marketplace: str = "") -> str:
         if keywords:
             items = client.search_catalog_items(keywords=keywords)
         else:
-            items = client.search_catalog_items(keywords="phone case")
+            items = client.search_catalog_items(keywords="water bottle")
         result = []
         for item in items:
             summaries = item.get("summaries", [{}])

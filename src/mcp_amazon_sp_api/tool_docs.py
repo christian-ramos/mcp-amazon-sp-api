@@ -8,7 +8,7 @@ Busca en TODO el catálogo de Amazon, no solo tus productos. Para ver solo tus l
 Pagina automáticamente (puede devolver más de 10 resultados).
 
 Parámetros:
-- keywords: Términos de búsqueda (ej: "wireless headphones"). Si vacío, busca "phone case".
+- keywords: Términos de búsqueda (ej: "stainless steel water bottle"). Si vacío, busca "water bottle".
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "get_product_details": """Detalle completo de un producto: título, marca, imágenes, rankings de ventas.
@@ -94,7 +94,7 @@ Parámetros:
 Solo funciona con SKUs de tu cuenta. Para productos de otros vendedores usa get_product_details.
 
 Parámetros:
-- sku: SKU del producto (ej: "1HC17400CC-MTA")
+- sku: SKU del producto (ej: "WB-500-SLV")
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "list_my_listings": """Listar MIS listings (solo productos de mi cuenta). Pagina automáticamente.
@@ -111,7 +111,7 @@ Parámetros:
     "get_listing_issues": """Issues de calidad de un listing: errores, warnings, atributos afectados.
 
 Parámetros:
-- sku: SKU del producto (ej: "1HC17400CC-MTA")
+- sku: SKU del producto (ej: "WB-500-SLV")
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "get_product_type_info": """Buscar product types o ver atributos válidos para un tipo de producto.
@@ -120,8 +120,8 @@ Si se da un product_type, descarga el schema JSON externo y extrae los atributos
 Si se dan keywords, busca tipos de producto que coincidan.
 
 Parámetros:
-- product_type: Tipo exacto (ej: "CELLULAR_PHONE_CASE") para ver definición. Vacío = buscar.
-- keywords: Palabras clave (ej: "phone case", "headphones")
+- product_type: Tipo exacto (ej: "WATER_BOTTLE") para ver definición. Vacío = buscar.
+- keywords: Palabras clave (ej: "water bottle", "backpack")
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "update_listing_attribute": """Actualizar un atributo de un listing (título, bullets, descripción, keywords).
@@ -129,8 +129,8 @@ Parámetros:
 REQUIERE confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
 
 Parámetros:
-- sku: SKU del producto (ej: "1HC17400CC-MTA")
-- product_type: Tipo (ej: "CELLULAR_PHONE_CASE"). Usar get_product_type_info para encontrarlo.
+- sku: SKU del producto (ej: "WB-500-SLV")
+- product_type: Tipo (ej: "WATER_BOTTLE"). Usar get_product_type_info para encontrarlo.
 - attribute_name: "item_name", "bullet_point", "product_description", "generic_keyword"
 - value: Nuevo valor. Para bullet_point usar JSON array: '["bullet1", "bullet2"]'
 - language_tag: Idioma (default según marketplace, ej: "es_ES")
@@ -142,8 +142,8 @@ Parámetros:
 REQUIERE confirm=True para ejecutar. Sin confirmación devuelve un plan detallado.
 
 Parámetros:
-- sku: SKU del producto (ej: "1HC17400CC-MTA")
-- product_type: Tipo (ej: "CELLULAR_PHONE_CASE")
+- sku: SKU del producto (ej: "WB-500-SLV")
+- product_type: Tipo (ej: "WATER_BOTTLE")
 - updates: JSON con atributos. Ejemplo: {"item_name": "Título", "bullet_point": ["b1", "b2"]}
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.
 - confirm: True para ejecutar. False = solo plan.""",
@@ -246,7 +246,7 @@ Parámetros:
 A diferencia de get_fba_inventory (report asíncrono), esto responde inmediatamente.
 
 Parámetros:
-- sku: SKU específico (ej: "1HC17400CC-MTA"). Vacío = todos. Múltiples con coma (máx 50).
+- sku: SKU específico (ej: "WB-500-SLV"). Vacío = todos. Múltiples con coma (máx 50).
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     # --- Fase 9: Pricing ---
@@ -297,7 +297,7 @@ REQUIERE confirm=True. Sin confirmación devuelve plan detallado.
 
 Parámetros:
 - sku: SKU del producto
-- product_type: Tipo (ej: "CELLULAR_PHONE_CASE")
+- product_type: Tipo (ej: "WATER_BOTTLE")
 - price: Nuevo precio (en moneda local del marketplace)
 - marketplace: Código del marketplace destino (ej: "DE", "FR")
 - confirm: True para ejecutar. False = solo plan.""",
@@ -308,7 +308,7 @@ REQUIERE confirm=True. Aplica precio base con ajuste porcentual opcional.
 
 Parámetros:
 - sku: SKU del producto
-- product_type: Tipo (ej: "CELLULAR_PHONE_CASE")
+- product_type: Tipo (ej: "WATER_BOTTLE")
 - base_price: Precio base en EUR
 - targets: Marketplaces destino (ej: "DE,FR,IT")
 - adjustment_pct: Ajuste % (ej: 5.0 = +5%, -3.0 = -3%). Default 0.
@@ -320,7 +320,7 @@ Parámetros:
 Busca por keywords, obtiene precios competitivos, ordena por precio.
 
 Parámetros:
-- keywords: Términos (ej: "phone case iPhone 16 silicone")
+- keywords: Términos (ej: "stainless steel water bottle 500ml")
 - max_results: Máx productos (default 10, máx 20)
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
@@ -330,7 +330,7 @@ Tu ASIN se excluye de la lista de competidores.
 
 Parámetros:
 - my_asin: Tu ASIN de referencia (ej: "B0G31M4Y7L")
-- keywords: Términos para encontrar competidores (ej: "phone case iPhone 16 clear")
+- keywords: Términos para encontrar competidores (ej: "insulated water bottle 1L")
 - max_results: Máx competidores (default 10, máx 20)
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
@@ -355,7 +355,7 @@ REQUIERE confirm=True. El feed se procesa en 5-15 min. Usar check_feed para resu
 Para 1 SKU en 1 marketplace, usar update_marketplace_price (más rápido).
 
 Parámetros:
-- updates: JSON array. Ejemplo: [{"sku": "1HC17400CC-MTA", "price": 14.99, "product_type": "CELLULAR_PHONE_CASE"}]
+- updates: JSON array. Ejemplo: [{"sku": "WB-500-SLV", "price": 14.99, "product_type": "WATER_BOTTLE"}]
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.
 - confirm: True para ejecutar. False = solo plan.""",
 

@@ -18,7 +18,7 @@ class TestGetListingItem:
             "sku": "SKU-001",
             "summaries": [{"asin": "B001", "status": "BUYABLE"}],
             "attributes": {
-                "item_name": [{"value": "Funda iPhone 16"}],
+                "item_name": [{"value": "Water Bottle 500ml"}],
                 "bullet_point": [{"value": "bullet1"}, {"value": "bullet2"}],
             },
             "issues": [],
@@ -26,7 +26,7 @@ class TestGetListingItem:
 
         result = client.get_listing_item("SKU-001")
         assert result["sku"] == "SKU-001"
-        assert result["attributes"]["item_name"][0]["value"] == "Funda iPhone 16"
+        assert result["attributes"]["item_name"][0]["value"] == "Water Bottle 500ml"
         mock_api.get_listings_item.assert_called_once_with(
             "A1SELLER", "SKU-001",
             marketplaceIds=["A1RKKUPIHCS9HS"],
@@ -96,11 +96,11 @@ class TestPatchListingItem:
             "path": "/attributes/item_name",
             "value": [{"value": "Nuevo título", "language_tag": "es_ES", "marketplace_id": "A1RKKUPIHCS9HS"}],
         }]
-        result = client.patch_listing_item("SKU-001", "PHONE_CASE", patches)
+        result = client.patch_listing_item("SKU-001", "WATER_BOTTLE", patches)
         assert result["status"] == "ACCEPTED"
 
         call_kwargs = mock_api.patch_listings_item.call_args[1]
-        assert call_kwargs["body"]["productType"] == "PHONE_CASE"
+        assert call_kwargs["body"]["productType"] == "WATER_BOTTLE"
         assert len(call_kwargs["body"]["patches"]) == 1
 
     @patch.object(AmazonClient, "_listings_api")
@@ -110,7 +110,7 @@ class TestPatchListingItem:
         mock_api.patch_listings_item.side_effect = make_api_error(400)
 
         with pytest.raises(RuntimeError, match="actualizar listing SKU-001"):
-            client.patch_listing_item("SKU-001", "PHONE_CASE", [])
+            client.patch_listing_item("SKU-001", "WATER_BOTTLE", [])
 
 
 class TestGetProductTypeDefinition:
@@ -119,12 +119,12 @@ class TestGetProductTypeDefinition:
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
         mock_api.get_definitions_product_type.return_value = make_response({
-            "productType": "PHONE_CASE",
+            "productType": "WATER_BOTTLE",
             "schema": {"properties": {"attributes": {"properties": {"item_name": {}}}}},
         })
 
-        result = client.get_product_type_definition("PHONE_CASE")
-        assert result["productType"] == "PHONE_CASE"
+        result = client.get_product_type_definition("WATER_BOTTLE")
+        assert result["productType"] == "WATER_BOTTLE"
 
     @patch.object(AmazonClient, "_product_type_definitions_api")
     def test_raises_on_error(self, mock_api_factory, client):
@@ -143,13 +143,13 @@ class TestSearchProductTypes:
         mock_api_factory.return_value = mock_api
         mock_api.search_definitions_product_types.return_value = make_response({
             "productTypes": [
-                {"name": "PHONE_CASE", "displayName": "Phone Case"},
+                {"name": "WATER_BOTTLE", "displayName": "Phone Case"},
             ]
         })
 
         result = client.search_product_types(keywords="phone case")
         assert len(result) == 1
-        assert result[0]["name"] == "PHONE_CASE"
+        assert result[0]["name"] == "WATER_BOTTLE"
 
     @patch.object(AmazonClient, "_product_type_definitions_api")
     def test_raises_on_error(self, mock_api_factory, client):

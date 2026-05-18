@@ -23,7 +23,7 @@ class TestGetCompetitivePricing:
                     }],
                     "NumberOfOfferListings": [{"condition": "New", "Count": 5}],
                 },
-                "SalesRankings": [{"ProductCategoryId": "phone_cases", "Rank": 150}],
+                "SalesRankings": [{"ProductCategoryId": "water_bottles", "Rank": 150}],
             },
         }]
         result = parse(get_competitive_pricing(asins="B001"))

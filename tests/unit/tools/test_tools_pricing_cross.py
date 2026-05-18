@@ -34,7 +34,7 @@ class TestGetCrossMarketplacePrices:
 class TestUpdateMarketplacePrice:
     def test_without_confirm_returns_plan(self, mock_client):
         result = parse(update_marketplace_price(
-            sku="SKU-1", product_type="PHONE_CASE", price=14.99, marketplace="DE",
+            sku="SKU-1", product_type="WATER_BOTTLE", price=14.99, marketplace="DE",
         ))
         assert result["confirmed"] is False
         assert "14.99" in result["plan"]["newPrice"]
@@ -45,7 +45,7 @@ class TestUpdateMarketplacePrice:
             "status": "ACCEPTED", "submissionId": "SUB-1", "issues": [],
         }
         result = parse(update_marketplace_price(
-            sku="SKU-1", product_type="PHONE_CASE", price=14.99, marketplace="DE", confirm=True,
+            sku="SKU-1", product_type="WATER_BOTTLE", price=14.99, marketplace="DE", confirm=True,
         ))
         assert result["status"] == "ACCEPTED"
         assert result["price"] == 14.99
@@ -53,14 +53,14 @@ class TestUpdateMarketplacePrice:
     def test_error_handling(self, mock_client):
         mock_client.update_price.side_effect = RuntimeError("Unsupported")
         assert "error" in parse(update_marketplace_price(
-            sku="SKU-1", product_type="PHONE_CASE", price=10.0, marketplace="XX", confirm=True,
+            sku="SKU-1", product_type="WATER_BOTTLE", price=10.0, marketplace="XX", confirm=True,
         ))
 
 
 class TestSyncMarketplacePrices:
     def test_without_confirm_returns_plan(self, mock_client):
         result = parse(sync_marketplace_prices(
-            sku="SKU-1", product_type="PHONE_CASE", base_price=12.99, targets="DE,FR",
+            sku="SKU-1", product_type="WATER_BOTTLE", base_price=12.99, targets="DE,FR",
         ))
         assert result["confirmed"] is False
         assert result["plan"]["adjustedPrice"] == 12.99
@@ -72,7 +72,7 @@ class TestSyncMarketplacePrices:
             {"marketplace": "FR", "price": 12.99, "status": "ACCEPTED", "issues": []},
         ]
         result = parse(sync_marketplace_prices(
-            sku="SKU-1", product_type="PHONE_CASE", base_price=12.99, targets="DE,FR", confirm=True,
+            sku="SKU-1", product_type="WATER_BOTTLE", base_price=12.99, targets="DE,FR", confirm=True,
         ))
         assert result["basePrice"] == 12.99
         assert len(result["results"]) == 2
@@ -82,7 +82,7 @@ class TestSyncMarketplacePrices:
             {"marketplace": "DE", "price": 11.0, "status": "ACCEPTED", "issues": []},
         ]
         result = parse(sync_marketplace_prices(
-            sku="SKU-1", product_type="PHONE_CASE", base_price=10.0,
+            sku="SKU-1", product_type="WATER_BOTTLE", base_price=10.0,
             targets="DE", adjustment_pct=10.0, confirm=True,
         ))
         assert result["adjustedPrice"] == 11.0
@@ -90,5 +90,5 @@ class TestSyncMarketplacePrices:
     def test_error_handling(self, mock_client):
         mock_client.sync_prices.side_effect = RuntimeError("Fail")
         assert "error" in parse(sync_marketplace_prices(
-            sku="SKU-1", product_type="PHONE_CASE", base_price=10.0, targets="DE", confirm=True,
+            sku="SKU-1", product_type="WATER_BOTTLE", base_price=10.0, targets="DE", confirm=True,
         ))

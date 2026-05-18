@@ -13,10 +13,10 @@ class TestGetCatalogItem:
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
         mock_api.get_catalog_item.return_value = make_response({
-            "summaries": [{"itemName": "Funda iPhone 16"}], "relationships": [],
+            "summaries": [{"itemName": "Water Bottle 500ml"}], "relationships": [],
         })
         result = client.get_catalog_item("B001")
-        assert result["summaries"][0]["itemName"] == "Funda iPhone 16"
+        assert result["summaries"][0]["itemName"] == "Water Bottle 500ml"
 
     @patch.object(AmazonClient, "_catalog_api")
     def test_includes_all_data_fields(self, mock_api_factory, client):
@@ -36,7 +36,7 @@ class TestSearchCatalogItems:
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
         mock_api.search_catalog_items.return_value = make_response({"items": [{"asin": "B001"}, {"asin": "B002"}]})
-        assert len(client.search_catalog_items(keywords="funda iPhone")) == 2
+        assert len(client.search_catalog_items(keywords="water bottle")) == 2
 
     @patch.object(AmazonClient, "_catalog_api")
     def test_search_by_identifiers(self, mock_api_factory, client):

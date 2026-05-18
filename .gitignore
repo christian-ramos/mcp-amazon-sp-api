@@ -1,8 +1,28 @@
+# Secrets
 .env
-.env.test
-.venv/
+.env.*
+!.env.example
+
+# Python
 __pycache__/
+*.py[cod]
 *.egg-info/
-dist/
-.claude/
+*.egg
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 .coverage
+htmlcov/
+dist/
+build/
+
+# Virtualenv / uv
+.venv/
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Tooling local
+.claude/

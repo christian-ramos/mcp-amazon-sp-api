@@ -440,7 +440,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "mcp", extras = ["cli"], specifier = ">=1.26.0" },
+    { name = "mcp", extras = ["cli"], specifier = ">=1.27.1" },
     { name = "python-amazon-sp-api", specifier = ">=2.1.8" },
     { name = "python-dotenv", specifier = ">=1.0.0" },
 ]

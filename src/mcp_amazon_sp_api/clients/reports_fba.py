@@ -1,6 +1,7 @@
 """Cliente de Reports FBA — stock, devoluciones, tarifas almacenamiento."""
 
 import logging
+from datetime import UTC
 
 from .reports_base import ReportsBaseClient
 from .reports_brand_analytics import _parse_report
@@ -20,7 +21,7 @@ RESTOCK_RECOMMENDATIONS = "GET_RESTOCK_INVENTORY_RECOMMENDATIONS_REPORT"
 class FbaReportsClient(ReportsBaseClient):
 
     def get_fba_inventory_report(
-        self, poll_interval: float = 15, timeout: float = 300,
+        self, poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Stock actual en FBA por SKU."""
         content = self.request_and_download_report(
@@ -30,7 +31,7 @@ class FbaReportsClient(ReportsBaseClient):
         return _parse_report(content)
 
     def get_fba_inventory_health(
-        self, poll_interval: float = 15, timeout: float = 300,
+        self, poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Salud del inventario: edad, exceso, restock."""
         content = self.request_and_download_report(
@@ -41,7 +42,7 @@ class FbaReportsClient(ReportsBaseClient):
 
     def get_fba_returns_report(
         self, start_date: str, end_date: str,
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Devoluciones FBA con motivo detallado."""
         content = self.request_and_download_report(
@@ -52,7 +53,7 @@ class FbaReportsClient(ReportsBaseClient):
 
     def get_fba_reimbursements(
         self, start_date: str, end_date: str,
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Reembolsos de Amazon FBA."""
         content = self.request_and_download_report(
@@ -62,7 +63,7 @@ class FbaReportsClient(ReportsBaseClient):
         return _parse_report(content)
 
     def get_fba_storage_fees(
-        self, poll_interval: float = 15, timeout: float = 300,
+        self, poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Tarifas de almacenamiento actuales."""
         content = self.request_and_download_report(
@@ -72,7 +73,7 @@ class FbaReportsClient(ReportsBaseClient):
         return _parse_report(content)
 
     def get_fba_longterm_storage_fees(
-        self, poll_interval: float = 15, timeout: float = 300,
+        self, poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Tarifas de almacenamiento de largo plazo."""
         content = self.request_and_download_report(
@@ -82,7 +83,7 @@ class FbaReportsClient(ReportsBaseClient):
         return _parse_report(content)
 
     def get_restock_recommendations(
-        self, poll_interval: float = 15, timeout: float = 300,
+        self, poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Recomendaciones de restock."""
         content = self.request_and_download_report(
@@ -94,5 +95,5 @@ class FbaReportsClient(ReportsBaseClient):
     @staticmethod
     def _default_start_date() -> str:
         """Fecha por defecto para informes de inventario (snapshot actual)."""
-        from datetime import datetime, timedelta, timezone
-        return (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
+        from datetime import datetime, timedelta
+        return (datetime.now(UTC) - timedelta(days=1)).isoformat()

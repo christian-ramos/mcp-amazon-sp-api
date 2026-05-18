@@ -14,7 +14,7 @@ class SalesReportsClient(ReportsBaseClient):
 
     def get_sales_and_traffic_report(
         self, start_date: str, end_date: str,
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Sesiones, page views, Buy Box %, conversión por ASIN y día."""
         content = self.request_and_download_report(

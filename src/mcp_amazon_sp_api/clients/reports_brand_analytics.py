@@ -11,7 +11,7 @@ import csv
 import io
 import json
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from .reports_base import ReportsBaseClient
 
@@ -28,7 +28,7 @@ ALTERNATE_PURCHASE = "GET_BRAND_ANALYTICS_ALTERNATE_PURCHASE_REPORT"
 
 def _last_complete_week() -> tuple[str, str]:
     """Devuelve (domingo, sábado) de la última semana completa."""
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     days_since_saturday = (today.weekday() + 2) % 7
     if days_since_saturday == 0:
         days_since_saturday = 7
@@ -39,7 +39,7 @@ def _last_complete_week() -> tuple[str, str]:
 
 def _last_complete_month() -> tuple[str, str]:
     """Devuelve (primer día, último día) del mes anterior."""
-    today = datetime.now(timezone.utc).date()
+    today = datetime.now(UTC).date()
     first_of_this_month = today.replace(day=1)
     last_of_prev_month = first_of_this_month - timedelta(days=1)
     first_of_prev_month = last_of_prev_month.replace(day=1)
@@ -92,7 +92,7 @@ class BrandAnalyticsClient(ReportsBaseClient):
     def get_search_terms_report(
         self, start_date: str | None = None, end_date: str | None = None,
         report_period: str = "WEEK",
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Top keywords con click share y conversion share."""
         return self._ba_report(
@@ -104,7 +104,7 @@ class BrandAnalyticsClient(ReportsBaseClient):
         self, asins: list[str],
         start_date: str | None = None, end_date: str | None = None,
         report_period: str = "WEEK",
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Rendimiento por término de búsqueda: impresiones, clics, carrito, compras.
 
@@ -125,7 +125,7 @@ class BrandAnalyticsClient(ReportsBaseClient):
     def get_market_basket_report(
         self, start_date: str | None = None, end_date: str | None = None,
         report_period: str = "MONTH",
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Productos comprados junto con los tuyos (cross-sell)."""
         return self._ba_report(
@@ -136,7 +136,7 @@ class BrandAnalyticsClient(ReportsBaseClient):
     def get_repeat_purchase_report(
         self, start_date: str | None = None, end_date: str | None = None,
         report_period: str = "MONTH",
-        poll_interval: float = 15, timeout: float = 300,
+        poll_interval: float = 15, timeout: float = 600,
     ) -> list[dict]:
         """Tasa de recompra por ASIN."""
         return self._ba_report(

@@ -104,7 +104,7 @@ class ReportsBaseClient(BaseClient):
         start_date: str,
         end_date: str | None = None,
         poll_interval: float = 15,
-        timeout: float = 300,
+        timeout: float = 600,
         report_options: dict | None = None,
     ) -> str:
         """Crea informe, hace polling hasta que esté listo y descarga el contenido.

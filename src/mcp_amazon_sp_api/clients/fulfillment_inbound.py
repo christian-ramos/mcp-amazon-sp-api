@@ -1,7 +1,7 @@
 """Cliente de Fulfillment Inbound API — envíos a FBA."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sp_api.api import FulfillmentInbound
 from sp_api.base import SellingApiException
@@ -49,10 +49,10 @@ class FulfillmentInboundClient(BaseClient):
                 else:
                     # DATE_RANGE requiere LastUpdatedAfter Y LastUpdatedBefore
                     after = last_updated_after or (
-                        datetime.now(timezone.utc) - timedelta(days=90)
+                        datetime.now(UTC) - timedelta(days=90)
                     ).strftime("%Y-%m-%dT%H:%M:%SZ")
                     before = last_updated_before or (
-                        datetime.now(timezone.utc) - timedelta(minutes=3)
+                        datetime.now(UTC) - timedelta(minutes=3)
                     ).strftime("%Y-%m-%dT%H:%M:%SZ")
                     kwargs: dict = {
                         "QueryType": "DATE_RANGE",

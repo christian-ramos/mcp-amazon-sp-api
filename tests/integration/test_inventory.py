@@ -7,7 +7,6 @@ Operaciones sandbox-only: create_inventory_item, add_inventory, delete_inventory
 import uuid
 
 import pytest
-
 from sp_api.api import Inventories
 
 from tests.conftest import skip_without_credentials

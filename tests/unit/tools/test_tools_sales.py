@@ -1,6 +1,7 @@
 """Tests de tools MCP: Ventas y Tráfico."""
 
 from mcp_amazon_sp_api.tools.sales_traffic import get_sales_and_traffic
+
 from .conftest import parse
 
 

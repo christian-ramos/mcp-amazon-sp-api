@@ -3,7 +3,6 @@
 import io
 import json
 import logging
-import time
 
 from sp_api.api import Feeds
 from sp_api.base import SellingApiException

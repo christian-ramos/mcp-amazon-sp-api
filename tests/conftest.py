@@ -1,6 +1,5 @@
 """Fixtures compartidos entre tests unitarios e integración."""
 
-import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -17,7 +16,7 @@ load_dotenv(ENV_TEST_PATH, override=True)
 _keychain_block = patch("mcp_amazon_sp_api.config._read_keychain", return_value=None)
 _keychain_block.start()
 
-from mcp_amazon_sp_api.config import SpApiConfig
+from mcp_amazon_sp_api.config import SpApiConfig  # noqa: E402  (must follow Keychain patch)
 
 FAKE_CONFIG = SpApiConfig(
     refresh_token="Atzr|fake_token",

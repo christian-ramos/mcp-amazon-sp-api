@@ -3,7 +3,7 @@
 import json
 import logging
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from .config import load_config
 from .sp_client import AmazonClient
@@ -24,12 +24,12 @@ def to_json(obj: object) -> str:
 
 def iso_now() -> str:
     """Timestamp actual en formato ISO8601 compatible con SP-API producción."""
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def iso_days_ago(days: int) -> str:
     """Timestamp de hace N días en formato ISO8601 compatible con SP-API producción."""
-    return (datetime.now(timezone.utc) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return (datetime.now(UTC) - timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def get_client(marketplace: str = "") -> AmazonClient:

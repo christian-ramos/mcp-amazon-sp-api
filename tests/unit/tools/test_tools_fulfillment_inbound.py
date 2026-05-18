@@ -1,6 +1,11 @@
 """Tests de tools MCP: Fulfillment Inbound."""
 
-from mcp_amazon_sp_api.tools.fulfillment import get_fba_shipment_items, get_inbound_guidance, list_fba_shipments
+from mcp_amazon_sp_api.tools.fulfillment import (
+    get_fba_shipment_items,
+    get_inbound_guidance,
+    list_fba_shipments,
+)
+
 from .conftest import parse
 
 

@@ -5,8 +5,8 @@ import logging
 from sp_api.api import ListingsRestrictions
 from sp_api.base import Marketplaces, SellingApiException
 
-from .base import BaseClient, throttle_retry
 from ..config import EU_MARKETPLACES
+from .base import BaseClient, throttle_retry
 
 logger = logging.getLogger(__name__)
 

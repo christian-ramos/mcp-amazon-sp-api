@@ -4,9 +4,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from mcp_amazon_sp_api.sp_client import AmazonClient
 from mcp_amazon_sp_api.config import EU_MARKETPLACES
-from .conftest import make_response, make_api_error
+from mcp_amazon_sp_api.sp_client import AmazonClient
+
+from .conftest import make_api_error, make_response
 
 
 class TestGetPricesAllMarketplaces:

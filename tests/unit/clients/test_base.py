@@ -5,8 +5,9 @@ from unittest.mock import patch
 import pytest
 from sp_api.base import SellingApiException
 
-from mcp_amazon_sp_api.sp_client import throttle_retry, load_all_pages
-from .conftest import make_throttle_error, make_api_error
+from mcp_amazon_sp_api.sp_client import load_all_pages, throttle_retry
+
+from .conftest import make_api_error, make_throttle_error
 
 
 class TestThrottleRetry:

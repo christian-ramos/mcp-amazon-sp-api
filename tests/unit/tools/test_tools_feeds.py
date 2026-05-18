@@ -1,6 +1,7 @@
 """Tests de tools MCP: Feeds."""
 
 from mcp_amazon_sp_api.tools.feeds import bulk_update_prices, check_feed
+
 from .conftest import parse
 
 

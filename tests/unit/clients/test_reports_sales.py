@@ -4,8 +4,8 @@ from unittest.mock import patch
 
 import pytest
 
-from mcp_amazon_sp_api.sp_client import AmazonClient
 from mcp_amazon_sp_api.clients.reports_sales import SALES_AND_TRAFFIC
+from mcp_amazon_sp_api.sp_client import AmazonClient
 
 
 class TestSalesReportsMethods:

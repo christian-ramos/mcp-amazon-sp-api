@@ -11,6 +11,7 @@ Sandbox test cases (definitionsProductTypes_2020-09-01.json):
 """
 
 import pytest
+
 from tests.conftest import skip_without_credentials
 
 pytestmark = [pytest.mark.integration, skip_without_credentials]

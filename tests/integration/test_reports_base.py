@@ -12,7 +12,6 @@ Usamos _request directo para create_report. En producción el wrapper funciona.
 """
 
 import pytest
-
 from sp_api.api import Reports
 
 from tests.conftest import skip_without_credentials

@@ -15,7 +15,7 @@ class CompetitorAnalysisClient(BaseClient):
         """Busca productos similares y obtiene precios, rankings y fulfillment.
 
         Args:
-            keywords: Términos de búsqueda (ej: "stainless steel water bottle 500ml").
+            keywords: Términos de búsqueda (ej: "water bottle iPhone 16 silicone").
             max_results: Máximo de productos a analizar (default 10, máx 20).
         """
         max_results = min(max_results, 20)

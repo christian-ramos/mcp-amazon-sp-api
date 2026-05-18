@@ -2,10 +2,7 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from mcp_amazon_sp_api.sp_client import AmazonClient
-
 
 CATALOG_ITEMS = [
     {"asin": "B001", "summaries": [{"itemName": "Bottle A", "brand": "MarcaA", "classification": {"displayName": "Cases"}}], "salesRanks": []},
@@ -84,7 +81,6 @@ class TestAnalyzeCompetitorPrices:
         mock_search.return_value = CATALOG_ITEMS
         mock_pricing.return_value = PRICING_DATA[:2]
         result = client.analyze_competitor_prices("bottle", max_results=2)
-        mock_search_call = mock_search.return_value
         # search returns 3 but we slice to max_results
         assert len(result) <= 3
 

@@ -5,9 +5,9 @@ from unittest.mock import patch
 from mcp_amazon_sp_api.sp_client import AmazonClient
 
 CATALOG_ITEMS = [
-    {"asin": "B001", "summaries": [{"itemName": "Bottle A", "brand": "MarcaA", "classification": {"displayName": "Cases"}}], "salesRanks": []},
-    {"asin": "B002", "summaries": [{"itemName": "Bottle B", "brand": "MarcaB", "classification": {"displayName": "Cases"}}], "salesRanks": []},
-    {"asin": "B003", "summaries": [{"itemName": "Bottle C", "brand": "MarcaC", "classification": {"displayName": "Cases"}}], "salesRanks": []},
+    {"asin": "B001", "summaries": [{"itemName": "Bottle A", "brand": "BrandA", "classification": {"displayName": "Bottles"}}], "salesRanks": []},
+    {"asin": "B002", "summaries": [{"itemName": "Bottle B", "brand": "BrandB", "classification": {"displayName": "Bottles"}}], "salesRanks": []},
+    {"asin": "B003", "summaries": [{"itemName": "Bottle C", "brand": "BrandC", "classification": {"displayName": "Bottles"}}], "salesRanks": []},
 ]
 
 PRICING_DATA = [
@@ -50,7 +50,7 @@ class TestAnalyzeCompetitorPrices:
     def test_returns_sorted_by_price(self, mock_search, mock_pricing, client):
         mock_search.return_value = CATALOG_ITEMS
         mock_pricing.return_value = PRICING_DATA
-        result = client.analyze_competitor_prices("water bottle 16")
+        result = client.analyze_competitor_prices("water bottle 500ml")
         assert len(result) == 3
         # Sorted by price: B002 (9.99), B001 (12.99), B003 (15.99)
         assert result[0]["asin"] == "B002"
@@ -117,7 +117,7 @@ class TestCompareWithCompetitors:
     @patch.object(AmazonClient, "get_catalog_item")
     def test_full_comparison(self, mock_catalog, mock_pricing, mock_analyze, client):
         mock_catalog.return_value = {
-            "summaries": [{"itemName": "My Case", "brand": "Acme"}],
+            "summaries": [{"itemName": "My Bottle", "brand": "Acme"}],
         }
         mock_pricing.return_value = [{
             "ASIN": "MY001",
@@ -125,16 +125,16 @@ class TestCompareWithCompetitors:
                 "CompetitivePricing": {
                     "CompetitivePrices": [{"Price": {"ListingPrice": {"Amount": "14.99"}, "LandedPrice": {"Amount": "14.99"}}}],
                 },
-                "SalesRankings": [{"ProductCategoryId": "cases", "Rank": 100}],
+                "SalesRankings": [{"ProductCategoryId": "bottles", "Rank": 100}],
             },
         }]
         mock_analyze.return_value = [
             {"asin": "B001", "title": "Competidor 1", "listingPrice": {"Amount": "9.99"}},
             {"asin": "B002", "title": "Competidor 2", "listingPrice": {"Amount": "12.99"}},
         ]
-        result = client.compare_with_competitors("MY001", "water bottle 16")
+        result = client.compare_with_competitors("MY001", "water bottle 500ml")
         assert result["myProduct"]["asin"] == "MY001"
-        assert result["myProduct"]["title"] == "My Case"
+        assert result["myProduct"]["title"] == "My Bottle"
         assert result["myProduct"]["listingPrice"]["Amount"] == "14.99"
         assert result["totalCompetitors"] == 2
 
@@ -142,7 +142,7 @@ class TestCompareWithCompetitors:
     @patch.object(AmazonClient, "get_competitive_pricing")
     @patch.object(AmazonClient, "get_catalog_item")
     def test_excludes_own_asin_from_competitors(self, mock_catalog, mock_pricing, mock_analyze, client):
-        mock_catalog.return_value = {"summaries": [{"itemName": "My Case"}]}
+        mock_catalog.return_value = {"summaries": [{"itemName": "My Bottle"}]}
         mock_pricing.return_value = [{"ASIN": "MY001", "Product": {"CompetitivePricing": {"CompetitivePrices": []}, "SalesRankings": []}}]
         mock_analyze.return_value = [
             {"asin": "MY001", "title": "Mi propio producto"},

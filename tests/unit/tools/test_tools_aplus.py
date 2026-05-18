@@ -18,7 +18,7 @@ class TestListAplusContent:
             },
             {
                 "contentReferenceKey": "KEY-2",
-                "contentMetadata": {"name": "Bottle A+", "status": "DRAFT", "badgeSet": [], "updateTime": "2025-02-01"},
+                "contentMetadata": {"name": "Thermos A+", "status": "DRAFT", "badgeSet": [], "updateTime": "2025-02-01"},
             },
         ]
         result = parse(list_aplus_content())

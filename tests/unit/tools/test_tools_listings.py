@@ -20,17 +20,17 @@ class TestGetListingContent:
             "sku": "SKU-001",
             "summaries": [{"asin": "B001", "status": "BUYABLE", "productType": "WATER_BOTTLE"}],
             "attributes": {
-                "item_name": [{"value": "Water Bottle 16 Pro"}],
-                "bullet_point": [{"value": "Protección total"}, {"value": "Material premium"}],
-                "product_description": [{"value": "La mejor bottle"}],
-                "generic_keyword": [{"value": "water bottle protection"}],
+                "item_name": [{"value": "Water Bottle 500ml Stainless Steel"}],
+                "bullet_point": [{"value": "Insulated"}, {"value": "Leak-proof lid"}],
+                "product_description": [{"value": "Best stainless steel water bottle"}],
+                "generic_keyword": [{"value": "water bottle stainless steel insulated"}],
             },
             "issues": [], "offers": [],
         }
         result = parse(get_listing_content(sku="SKU-001"))
-        assert result["title"] == "Water Bottle 16 Pro"
-        assert result["bulletPoints"] == ["Protección total", "Material premium"]
-        assert result["description"] == "La mejor bottle"
+        assert result["title"] == "Water Bottle 500ml Stainless Steel"
+        assert result["bulletPoints"] == ["Insulated", "Leak-proof lid"]
+        assert result["description"] == "Best stainless steel water bottle"
         assert result["issueCount"] == 0
 
     def test_handles_empty_attributes(self, mock_client):

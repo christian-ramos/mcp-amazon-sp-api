@@ -13,10 +13,10 @@ class TestGetCatalogItem:
         mock_api = MagicMock()
         mock_api_factory.return_value = mock_api
         mock_api.get_catalog_item.return_value = make_response({
-            "summaries": [{"itemName": "Water Bottle 16"}], "relationships": [],
+            "summaries": [{"itemName": "Water Bottle 500ml"}], "relationships": [],
         })
         result = client.get_catalog_item("B001")
-        assert result["summaries"][0]["itemName"] == "Water Bottle 16"
+        assert result["summaries"][0]["itemName"] == "Water Bottle 500ml"
 
     @patch.object(AmazonClient, "_catalog_api")
     def test_includes_all_data_fields(self, mock_api_factory, client):

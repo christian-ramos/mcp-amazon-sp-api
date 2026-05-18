@@ -43,7 +43,7 @@ class TestGetOrders:
 class TestGetOrderItems:
     def test_returns_items(self, mock_client):
         mock_client.get_order_items.return_value = [{
-            "ASIN": "B001", "SellerSKU": "SKU-001", "Title": "Water Bottle 16",
+            "ASIN": "B001", "SellerSKU": "SKU-001", "Title": "Water Bottle 500ml",
             "QuantityOrdered": 2,
             "ItemPrice": {"Amount": "19.99", "CurrencyCode": "EUR"},
             "ItemTax": {"Amount": "4.20", "CurrencyCode": "EUR"},

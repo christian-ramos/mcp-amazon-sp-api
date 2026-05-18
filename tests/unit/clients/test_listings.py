@@ -18,7 +18,7 @@ class TestGetListingItem:
             "sku": "SKU-001",
             "summaries": [{"asin": "B001", "status": "BUYABLE"}],
             "attributes": {
-                "item_name": [{"value": "Water Bottle 16"}],
+                "item_name": [{"value": "Water Bottle 500ml"}],
                 "bullet_point": [{"value": "bullet1"}, {"value": "bullet2"}],
             },
             "issues": [],
@@ -26,7 +26,7 @@ class TestGetListingItem:
 
         result = client.get_listing_item("SKU-001")
         assert result["sku"] == "SKU-001"
-        assert result["attributes"]["item_name"][0]["value"] == "Water Bottle 16"
+        assert result["attributes"]["item_name"][0]["value"] == "Water Bottle 500ml"
         mock_api.get_listings_item.assert_called_once_with(
             "A1SELLER", "SKU-001",
             marketplaceIds=["A1RKKUPIHCS9HS"],

@@ -8,7 +8,7 @@ Busca en TODO el catálogo de Amazon, no solo tus productos. Para ver solo tus l
 Pagina automáticamente (puede devolver más de 10 resultados).
 
 Parámetros:
-- keywords: Términos de búsqueda (ej: "wireless headphones"). Si vacío, busca "water bottle".
+- keywords: Términos de búsqueda (ej: "stainless steel water bottle"). Si vacío, busca "water bottle".
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "get_product_details": """Detalle completo de un producto: título, marca, imágenes, rankings de ventas.
@@ -121,7 +121,7 @@ Si se dan keywords, busca tipos de producto que coincidan.
 
 Parámetros:
 - product_type: Tipo exacto (ej: "WATER_BOTTLE") para ver definición. Vacío = buscar.
-- keywords: Palabras clave (ej: "water bottle", "headphones")
+- keywords: Palabras clave (ej: "water bottle", "backpack")
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "update_listing_attribute": """Actualizar un atributo de un listing (título, bullets, descripción, keywords).
@@ -320,7 +320,7 @@ Parámetros:
 Busca por keywords, obtiene precios competitivos, ordena por precio.
 
 Parámetros:
-- keywords: Términos (ej: "water bottle iPhone 16 silicone")
+- keywords: Términos (ej: "stainless steel water bottle 500ml")
 - max_results: Máx productos (default 10, máx 20)
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 

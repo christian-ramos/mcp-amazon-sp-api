@@ -14,8 +14,8 @@ class TestAnalyzeCompetitorPrices:
             {"asin": "B001", "title": "Bottle A", "listingPrice": {"Amount": "9.99"}, "totalOffers": 3},
             {"asin": "B002", "title": "Bottle B", "listingPrice": {"Amount": "12.99"}, "totalOffers": 1},
         ]
-        result = parse(analyze_competitor_prices(keywords="water bottle 16"))
-        assert result["keywords"] == "water bottle 16"
+        result = parse(analyze_competitor_prices(keywords="water bottle 500ml"))
+        assert result["keywords"] == "water bottle 500ml"
         assert result["totalResults"] == 2
         assert result["competitors"][0]["asin"] == "B001"
 
@@ -32,13 +32,13 @@ class TestAnalyzeCompetitorPrices:
 class TestCompareWithCompetitors:
     def test_returns_comparison(self, mock_client):
         mock_client.compare_with_competitors.return_value = {
-            "myProduct": {"asin": "MY001", "title": "My Case", "listingPrice": {"Amount": "14.99"}},
+            "myProduct": {"asin": "MY001", "title": "My Bottle", "listingPrice": {"Amount": "14.99"}},
             "competitors": [
                 {"asin": "B001", "title": "Competidor", "listingPrice": {"Amount": "9.99"}},
             ],
             "totalCompetitors": 1,
         }
-        result = parse(compare_with_competitors(my_asin="MY001", keywords="water bottle 16"))
+        result = parse(compare_with_competitors(my_asin="MY001", keywords="water bottle 500ml"))
         assert result["myProduct"]["asin"] == "MY001"
         assert result["totalCompetitors"] == 1
 

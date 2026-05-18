@@ -124,7 +124,7 @@ class TestBrandAnalyticsMethods:
 
     @patch.object(AmazonClient, "request_and_download_report")
     def test_tsv_content_parsed(self, mock_rad, client):
-        mock_rad.return_value = "keyword\trank\nwater bottle\t1\nbottle\t2\n"
+        mock_rad.return_value = "keyword\trank\nwater bottle\t1\nthermos\t2\n"
         result = client.get_search_terms_report("2025-01-01", "2025-01-31")
         assert len(result) == 2
         assert result[0]["keyword"] == "water bottle"

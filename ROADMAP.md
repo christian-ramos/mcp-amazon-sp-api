@@ -1,7 +1,7 @@
 # MCP Amazon SP-API — Roadmap de implementación
 
-MCP server en Python que conecta Amazon Seller Central (España) con Claude Desktop.
-El vendedor vende fundas de iPhone (modelos 16/17, variantes por color/modelo) con listings parent/child en FBA.
+MCP server en Python que conecta Amazon Seller Central con Claude Desktop.
+Pensado para vendedores que operan en uno o varios marketplaces de Amazon (EU/US) con catálogo en FBA y/o FBM.
 
 ## Estado actual
 

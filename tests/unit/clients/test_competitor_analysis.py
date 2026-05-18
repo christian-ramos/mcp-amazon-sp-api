@@ -2,10 +2,7 @@
 
 from unittest.mock import patch
 
-import pytest
-
 from mcp_amazon_sp_api.sp_client import AmazonClient
-
 
 CATALOG_ITEMS = [
     {"asin": "B001", "summaries": [{"itemName": "Funda A", "brand": "MarcaA", "classification": {"displayName": "Cases"}}], "salesRanks": []},
@@ -84,7 +81,6 @@ class TestAnalyzeCompetitorPrices:
         mock_search.return_value = CATALOG_ITEMS
         mock_pricing.return_value = PRICING_DATA[:2]
         result = client.analyze_competitor_prices("funda", max_results=2)
-        mock_search_call = mock_search.return_value
         # search returns 3 but we slice to max_results
         assert len(result) <= 3
 
@@ -121,7 +117,7 @@ class TestCompareWithCompetitors:
     @patch.object(AmazonClient, "get_catalog_item")
     def test_full_comparison(self, mock_catalog, mock_pricing, mock_analyze, client):
         mock_catalog.return_value = {
-            "summaries": [{"itemName": "Mi Funda", "brand": "Mirauba"}],
+            "summaries": [{"itemName": "My Case", "brand": "Acme"}],
         }
         mock_pricing.return_value = [{
             "ASIN": "MY001",
@@ -138,7 +134,7 @@ class TestCompareWithCompetitors:
         ]
         result = client.compare_with_competitors("MY001", "funda iPhone 16")
         assert result["myProduct"]["asin"] == "MY001"
-        assert result["myProduct"]["title"] == "Mi Funda"
+        assert result["myProduct"]["title"] == "My Case"
         assert result["myProduct"]["listingPrice"]["Amount"] == "14.99"
         assert result["totalCompetitors"] == 2
 

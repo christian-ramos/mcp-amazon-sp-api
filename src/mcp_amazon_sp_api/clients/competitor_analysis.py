@@ -15,7 +15,7 @@ class CompetitorAnalysisClient(BaseClient):
         """Busca productos similares y obtiene precios, rankings y fulfillment.
 
         Args:
-            keywords: Términos de búsqueda (ej: "funda iPhone 16 silicona").
+            keywords: Términos de búsqueda (ej: "phone case iPhone 16 silicone").
             max_results: Máximo de productos a analizar (default 10, máx 20).
         """
         max_results = min(max_results, 20)

@@ -2,13 +2,14 @@
 
 from mcp_amazon_sp_api.tools.analysis import get_sales_rankings
 from mcp_amazon_sp_api.tools.catalog_orders import get_product_details, list_products
+
 from .conftest import parse
 
 
 class TestListProducts:
     def test_with_keywords(self, mock_client):
         mock_client.search_catalog_items.return_value = [
-            {"asin": "B001", "summaries": [{"itemName": "Funda iPhone 16", "brand": "Mirauba"}]}
+            {"asin": "B001", "summaries": [{"itemName": "Funda iPhone 16", "brand": "Acme"}]}
         ]
         result = parse(list_products(keywords="funda"))
         assert result[0]["asin"] == "B001"
@@ -17,7 +18,7 @@ class TestListProducts:
     def test_without_keywords_uses_default(self, mock_client):
         mock_client.search_catalog_items.return_value = []
         list_products()
-        mock_client.search_catalog_items.assert_called_once_with(keywords="funda iPhone")
+        mock_client.search_catalog_items.assert_called_once_with(keywords="phone case")
 
     def test_handles_empty_summaries(self, mock_client):
         mock_client.search_catalog_items.return_value = [{"asin": "B001", "summaries": []}]
@@ -31,7 +32,7 @@ class TestListProducts:
 class TestGetProductDetails:
     def test_basic_details(self, mock_client):
         mock_client.get_catalog_item.return_value = {
-            "summaries": [{"itemName": "Funda iPhone 16 Pro", "brand": "Mirauba", "manufacturer": "Mirauba SL", "classification": {"displayName": "Cases"}}],
+            "summaries": [{"itemName": "Funda iPhone 16 Pro", "brand": "Acme", "manufacturer": "Acme SL", "classification": {"displayName": "Cases"}}],
             "relationships": [], "images": [{"images": [{"url": "http://img1"}, {"url": "http://img2"}]}], "salesRanks": [{"rank": 5000}],
         }
         result = parse(get_product_details(asin="B001"))

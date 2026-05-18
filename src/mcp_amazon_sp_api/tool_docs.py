@@ -8,7 +8,7 @@ Busca en TODO el catálogo de Amazon, no solo tus productos. Para ver solo tus l
 Pagina automáticamente (puede devolver más de 10 resultados).
 
 Parámetros:
-- keywords: Términos de búsqueda (ej: "NUCASE funda iPhone 16"). Si vacío, busca "funda iPhone".
+- keywords: Términos de búsqueda (ej: "wireless headphones"). Si vacío, busca "phone case".
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "get_product_details": """Detalle completo de un producto: título, marca, imágenes, rankings de ventas.
@@ -121,7 +121,7 @@ Si se dan keywords, busca tipos de producto que coincidan.
 
 Parámetros:
 - product_type: Tipo exacto (ej: "CELLULAR_PHONE_CASE") para ver definición. Vacío = buscar.
-- keywords: Palabras clave (ej: "funda movil", "phone case")
+- keywords: Palabras clave (ej: "phone case", "headphones")
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
     "update_listing_attribute": """Actualizar un atributo de un listing (título, bullets, descripción, keywords).
@@ -320,7 +320,7 @@ Parámetros:
 Busca por keywords, obtiene precios competitivos, ordena por precio.
 
 Parámetros:
-- keywords: Términos (ej: "funda iPhone 16 silicona")
+- keywords: Términos (ej: "phone case iPhone 16 silicone")
 - max_results: Máx productos (default 10, máx 20)
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 
@@ -330,7 +330,7 @@ Tu ASIN se excluye de la lista de competidores.
 
 Parámetros:
 - my_asin: Tu ASIN de referencia (ej: "B0G31M4Y7L")
-- keywords: Términos para encontrar competidores (ej: "funda iPhone 16 transparente")
+- keywords: Términos para encontrar competidores (ej: "phone case iPhone 16 clear")
 - max_results: Máx competidores (default 10, máx 20)
 - marketplace: ES, DE, FR, IT, GB. Vacío = default .env.""",
 

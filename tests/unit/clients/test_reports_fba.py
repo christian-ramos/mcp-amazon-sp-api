@@ -4,12 +4,16 @@ from unittest.mock import patch
 
 import pytest
 
-from mcp_amazon_sp_api.sp_client import AmazonClient
 from mcp_amazon_sp_api.clients.reports_fba import (
-    FBA_INVENTORY, FBA_INVENTORY_HEALTH, FBA_RETURNS,
-    FBA_REIMBURSEMENTS, FBA_STORAGE_FEES, FBA_LONGTERM_STORAGE,
+    FBA_INVENTORY,
+    FBA_INVENTORY_HEALTH,
+    FBA_LONGTERM_STORAGE,
+    FBA_REIMBURSEMENTS,
+    FBA_RETURNS,
+    FBA_STORAGE_FEES,
     RESTOCK_RECOMMENDATIONS,
 )
+from mcp_amazon_sp_api.sp_client import AmazonClient
 
 
 class TestFbaReportsMethods:

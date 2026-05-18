@@ -1,10 +1,10 @@
 """Cliente de Sales API — métricas de ventas agregadas."""
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sp_api.api import Sales
-from sp_api.base import SellingApiException, Granularity
+from sp_api.base import Granularity, SellingApiException
 
 from .base import BaseClient, throttle_retry
 
@@ -28,7 +28,7 @@ class SalesApiClient(BaseClient):
             days_back: Número de días hacia atrás.
             granularity: "Day", "Week" o "Month".
         """
-        end = datetime.now(timezone.utc)
+        end = datetime.now(UTC)
         start = end - timedelta(days=days_back)
 
         gran = Granularity[granularity.upper()] if hasattr(Granularity, granularity.upper()) else Granularity.DAY

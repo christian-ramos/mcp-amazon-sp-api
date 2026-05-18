@@ -1,12 +1,12 @@
 """Tests unitarios para FeedsClient."""
 
 from unittest.mock import MagicMock, patch
-from types import SimpleNamespace
 
 import pytest
 
 from mcp_amazon_sp_api.sp_client import AmazonClient
-from .conftest import make_response, make_api_error
+
+from .conftest import make_api_error, make_response
 
 
 class TestSubmitFeed:

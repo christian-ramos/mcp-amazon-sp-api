@@ -1,6 +1,7 @@
 """Tests de integración para Sales API (sandbox SP-API)."""
 
 import pytest
+
 from tests.conftest import skip_without_credentials
 
 

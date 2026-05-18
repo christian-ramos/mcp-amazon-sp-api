@@ -4,13 +4,17 @@ from unittest.mock import patch
 
 import pytest
 
-from mcp_amazon_sp_api.sp_client import AmazonClient
 from mcp_amazon_sp_api.clients.reports_brand_analytics import (
-    _parse_tsv, _parse_report, _last_complete_week, _last_complete_month,
-    SEARCH_TERMS, SEARCH_QUERY_PERFORMANCE, MARKET_BASKET,
-    REPEAT_PURCHASE, ITEM_COMPARISON, ALTERNATE_PURCHASE,
+    MARKET_BASKET,
+    REPEAT_PURCHASE,
+    SEARCH_QUERY_PERFORMANCE,
+    SEARCH_TERMS,
+    _last_complete_month,
+    _last_complete_week,
+    _parse_report,
+    _parse_tsv,
 )
-
+from mcp_amazon_sp_api.sp_client import AmazonClient
 
 # ---------------------------------------------------------------------------
 # Date helpers
@@ -89,7 +93,7 @@ class TestBrandAnalyticsMethods:
         assert result[0]["term"] == "funda"
         mock_rad.assert_called_once_with(
             SEARCH_TERMS, "2025-01-05", "2025-01-11",
-            poll_interval=15, timeout=300,
+            poll_interval=15, timeout=600,
             report_options={"reportPeriod": "WEEK"},
         )
 

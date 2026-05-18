@@ -1,6 +1,7 @@
 """Tests de tools MCP: Solicitations."""
 
 from mcp_amazon_sp_api.tools.solicitations import check_review_eligibility, request_review
+
 from .conftest import parse
 
 

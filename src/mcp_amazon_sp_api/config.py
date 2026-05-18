@@ -180,7 +180,7 @@ def load_config(env_file: str | Path | None = ".env") -> SpApiConfig:
 
     missing = [k for k, v in required.items() if not credentials[v]]
     if missing:
-        raise EnvironmentError(
+        raise OSError(
             f"Faltan credenciales: {', '.join(missing)}. "
             "Configúralas en Keychain (security add-generic-password) o en .env."
         )

@@ -8,7 +8,6 @@ from sp_api.base import SellingApiException
 from mcp_amazon_sp_api.config import SpApiConfig
 from mcp_amazon_sp_api.sp_client import AmazonClient
 
-
 FAKE_CONFIG = SpApiConfig(
     refresh_token="Atzr|fake_token",
     lwa_app_id="amzn1.application-oa2-client.fake",

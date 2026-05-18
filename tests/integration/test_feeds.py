@@ -6,7 +6,6 @@ Sandbox test cases:
 """
 
 import pytest
-
 from sp_api.api import Feeds
 
 from tests.conftest import skip_without_credentials

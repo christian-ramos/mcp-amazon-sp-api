@@ -8,6 +8,7 @@ un correlation ID. Usamos _request directo para enviar el body exacto.
 """
 
 import pytest
+
 from tests.conftest import skip_without_credentials
 
 pytestmark = [pytest.mark.integration, skip_without_credentials]

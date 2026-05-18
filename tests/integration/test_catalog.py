@@ -1,6 +1,7 @@
 """Integración: CatalogItems API — sandbox sin test cases de éxito específicos."""
 
 import pytest
+
 from tests.conftest import skip_without_credentials
 
 pytestmark = [pytest.mark.integration, skip_without_credentials]

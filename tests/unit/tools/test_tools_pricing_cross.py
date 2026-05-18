@@ -1,6 +1,11 @@
 """Tests de tools MCP: Precios cross-marketplace."""
 
-from mcp_amazon_sp_api.tools.pricing_cross import get_cross_marketplace_prices, sync_marketplace_prices, update_marketplace_price
+from mcp_amazon_sp_api.tools.pricing_cross import (
+    get_cross_marketplace_prices,
+    sync_marketplace_prices,
+    update_marketplace_price,
+)
+
 from .conftest import parse
 
 

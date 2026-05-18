@@ -1,6 +1,11 @@
 """Tests de tools MCP: finances (returns_summary, order_finances, profitability_report)."""
 
-from mcp_amazon_sp_api.tools.analysis import get_order_finances, get_profitability_report, get_returns_summary
+from mcp_amazon_sp_api.tools.analysis import (
+    get_order_finances,
+    get_profitability_report,
+    get_returns_summary,
+)
+
 from .conftest import parse
 
 

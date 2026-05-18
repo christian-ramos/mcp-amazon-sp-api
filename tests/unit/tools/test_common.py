@@ -3,6 +3,8 @@
 from datetime import datetime
 
 from mcp_amazon_sp_api.helpers import to_json
+
+
 class TestJsonHelper:
     def test_ensure_ascii_false(self):
         result = to_json({"name": "España"})

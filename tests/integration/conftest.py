@@ -6,7 +6,7 @@ import pytest
 
 from mcp_amazon_sp_api.config import load_config
 from mcp_amazon_sp_api.sp_client import AmazonClient
-from tests.conftest import ENV_TEST_PATH, skip_without_credentials
+from tests.conftest import ENV_TEST_PATH
 
 
 @pytest.fixture(scope="module")

@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from mcp_amazon_sp_api.sp_client import AmazonClient
+
 from .conftest import make_response
 
 

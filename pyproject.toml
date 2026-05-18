@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 dependencies = [
-    "mcp[cli]>=1.26.0",
+    "mcp[cli]>=1.27.1",
     "python-amazon-sp-api>=2.1.8",
     "python-dotenv>=1.0.0",
 ]

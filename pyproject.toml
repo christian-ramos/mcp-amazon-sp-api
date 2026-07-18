@@ -42,9 +42,9 @@ packages = ["src/mcp_amazon_sp_api"]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
+    "pytest>=9.1.0",
     "pytest-cov>=6.0",
-    "ruff>=0.8",
+    "ruff>=0.15.17",
 ]
 
 [tool.pytest.ini_options]
